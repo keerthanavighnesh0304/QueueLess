@@ -1,0 +1,84 @@
+
+.details-page {
+  padding: 45px 6%;
+  min-height: 70vh;
+}
+
+.back-button {
+  border: none;
+  background: transparent;
+  color: #1765a5;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.details-card {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 35px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.details-header h1 {
+  color: #173b63;
+  font-size: 28px;
+  margin: 0 0 10px;
+}
+
+.details-header p,
+.details-queue p {
+  color: #64748b;
+}
+
+.details-queue {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 35px 0;
+  padding: 25px 0;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.details-queue h2 {
+  color: #1765a5;
+  font-size: 30px;
+  margin: 0 0 8px;
+}
+
+.join-button {
+  width: 100%;
+  padding: 14px;
+  background: #1765a5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.join-button:hover {
+  background: #124d80;
+}
+
+@media (max-width: 600px) {
+  .details-card {
+    padding: 22px;
+  }
+
+  .details-header h1 {
+    font-size: 23px;
+  }
+}

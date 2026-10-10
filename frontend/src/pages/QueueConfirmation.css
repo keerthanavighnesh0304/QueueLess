@@ -1,0 +1,83 @@
+
+.confirmation-page {
+  padding: 50px 20px;
+  min-height: 70vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirmation-card {
+  background: white;
+  width: 100%;
+  max-width: 550px;
+  padding: 35px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.success-icon {
+  background: #dcfce7;
+  color: #15803d;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  margin: 0 auto 20px;
+}
+
+.confirmation-card h1 {
+  color: #173b63;
+  font-size: 28px;
+}
+
+.confirmation-card > p {
+  color: #64748b;
+}
+
+.queue-number {
+  background: #eff6ff;
+  padding: 25px;
+  border-radius: 10px;
+  margin: 25px 0;
+}
+
+.queue-number span {
+  color: #64748b;
+}
+
+.queue-number h2 {
+  color: #1765a5;
+  font-size: 40px;
+  margin: 10px 0 0;
+}
+
+.queue-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.queue-info h3 {
+  color: #1765a5;
+  font-size: 25px;
+}
+
+.queue-info p {
+  color: #64748b;
+}
+
+.confirmation-card button {
+  width: 100%;
+  padding: 13px;
+  background: #1765a5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
