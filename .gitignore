@@ -17,3 +17,16 @@ npm-debug.log*
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Python & virtual environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+.pytest_cache/

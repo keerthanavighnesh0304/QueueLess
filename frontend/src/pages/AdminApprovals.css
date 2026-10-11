@@ -1,0 +1,154 @@
+.admin-page {
+  padding: 40px 6% 60px;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  background: var(--bg-app);
+}
+
+.admin-container {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.admin-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+}
+
+.admin-header .subtext {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.admin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 18px;
+  padding: 34px;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pending-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 18px;
+  padding: 26px 30px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pending-card:hover {
+  border-color: var(--color-amber);
+  box-shadow: var(--shadow-md);
+}
+
+.pending-info h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.pending-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.pending-badge {
+  display: inline-block;
+  background: var(--status-calling-bg);
+  color: var(--status-calling-text);
+  border: 1px solid var(--status-calling-border);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pending-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-approve {
+  background: var(--color-amber);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 6px var(--color-accent-glow);
+}
+
+.btn-approve:hover:not(:disabled) {
+  background: var(--color-amber-hover);
+  transform: translateY(-1px);
+}
+
+.btn-reject {
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
+  border: 1px solid var(--status-danger-border);
+  padding: 10px 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-reject:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.empty-pending-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 18px;
+  padding: 50px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-pending-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 12px 0 6px;
+}

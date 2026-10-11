@@ -1,97 +1,610 @@
-
 .my-queue-page {
-  min-height: 75vh;
-  padding: 45px 20px;
+  min-height: calc(100vh - 80px);
+  padding: 40px 6% 60px;
+  background: var(--bg-app);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
 }
 
-.my-queue-card,
-.empty-queue {
+.my-queue-container {
   width: 100%;
-  max-width: 600px;
-  padding: 35px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  max-width: 860px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.queue-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.queue-page-header h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+}
+
+.queue-page-header .subtext {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.refresh-btn-small {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.refresh-btn-small:hover:not(:disabled) {
+  border-color: var(--color-amber);
+  color: var(--color-burnt-orange);
+  background-color: var(--color-accent-subtle);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .refresh-btn-small:hover:not(:disabled) {
+  color: var(--color-gold);
+}
+
+/* Active Ticket Cards */
+.active-tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.active-ticket-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: relative;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.active-ticket-card.status-calling {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 1px var(--color-amber), var(--shadow-md);
+}
+
+.active-ticket-card.status-in_consultation {
+  border-color: var(--color-burnt-orange);
+  box-shadow: 0 0 0 1px var(--color-burnt-orange), var(--shadow-md);
+}
+
+[data-theme="dark"] .active-ticket-card.status-in_consultation {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--color-gold), var(--shadow-md);
+}
+
+/* Urgent Notification Banners */
+.urgent-banner {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulse-soft 2s infinite ease-in-out;
+}
+
+.calling-banner {
+  background: var(--status-calling-bg);
+  color: var(--status-calling-text);
+  border: 1px solid var(--status-calling-border);
+}
+
+.consult-banner {
+  background: var(--status-consult-bg);
+  color: var(--status-consult-text);
+  border: 1px solid var(--status-consult-border);
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
+}
+
+.ticket-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.facility-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-burnt-orange);
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 3px;
+}
+
+[data-theme="dark"] .facility-label {
+  color: var(--color-gold);
+}
+
+.ticket-card-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.doc-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Authoritative Token Hero Display */
+.token-hero {
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-border);
+  padding: 24px;
+  border-radius: 16px;
   text-align: center;
 }
 
-.my-queue-card h1,
-.empty-queue h1 {
-  color: #173b63;
+.token-caption {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-burnt-orange);
+  letter-spacing: 0.06em;
 }
 
-.my-queue-card > p,
-.empty-queue p {
-  color: #64748b;
+[data-theme="dark"] .token-caption {
+  color: var(--color-gold);
 }
 
-.my-ticket {
-  margin: 30px 0;
-  padding: 25px;
-  background: #eff6ff;
-  border-radius: 10px;
+.token-code {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--color-burnt-orange);
+  letter-spacing: 0.04em;
+  margin: 4px 0 2px;
+  line-height: 1.1;
 }
 
-.my-ticket span {
-  color: #64748b;
+[data-theme="dark"] .token-code {
+  color: var(--color-gold);
 }
 
-.my-ticket h2 {
-  color: #1765a5;
-  font-size: 38px;
-  margin: 10px 0 0;
+.registered-at-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.my-queue-card > h3 {
-  color: #173b63;
-}
-
-.my-queue-info {
+/* Metrics Grid */
+.live-metrics-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin: 30px 0;
-  padding: 20px 0;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
 }
 
-.my-queue-info h2 {
-  color: #1765a5;
+.metric-box {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.my-queue-info p {
-  color: #64748b;
+.metric-box .metric-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.leave-button {
-  width: 100%;
-  padding: 13px;
-  background: #dc2626;
-  color: white;
-  border: none;
+.metric-box .metric-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.ticket-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cancel-ticket-button {
+  background: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger-text);
+  padding: 9px 18px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
-.leave-button:hover {
-  background: #b91c1c;
+.cancel-ticket-button:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
-.empty-queue a {
-  display: inline-block;
-  margin-top: 20px;
-  color: #1765a5;
+/* Empty Queue Card */
+.empty-queue-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 18px;
+  padding: 50px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
-@media (max-width: 600px) {
-  .my-queue-card,
-  .empty-queue {
-    padding: 22px;
+.empty-icon {
+  font-size: 44px;
+  margin-bottom: 4px;
+}
+
+.empty-queue-card h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.empty-queue-card p {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.find-hosp-btn {
+  background: var(--color-amber);
+  color: #ffffff !important;
+  padding: 12px 24px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  text-decoration: none;
+}
+
+.find-hosp-btn:hover {
+  background: var(--color-amber-hover);
+  transform: translateY(-1px);
+}
+
+/* Unauthenticated Empty State Actions */
+.empty-queue {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 50px 30px;
+  text-align: center;
+  max-width: 580px;
+  margin: 40px auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-queue h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-queue p {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.primary-link-btn {
+  background-color: var(--color-amber);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 9px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+}
+
+.primary-link-btn:hover {
+  background-color: var(--color-amber-hover);
+  transform: translateY(-1px);
+}
+
+.secondary-link-btn {
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 9px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.secondary-link-btn:hover {
+  border-color: var(--color-amber);
+  color: var(--color-burnt-orange) !important;
+  background-color: var(--color-accent-subtle);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .secondary-link-btn:hover {
+  color: var(--color-gold) !important;
+}
+
+/* =========================================================================
+   TICKET HISTORY SECTION & POLISHED RECORD CARDS
+   ========================================================================= */
+.history-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.history-header h3 {
+  margin: 0 0 3px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.history-header .subtext {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.history-count-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  color: var(--text-secondary);
+}
+
+/* Responsive Grid of History Cards */
+.history-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.history-card {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all var(--transition-fast);
+}
+
+.history-card:hover {
+  border-color: var(--color-amber);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Card Header: Token & Status */
+.history-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-token-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.history-token-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.history-token {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+/* Card Body: Hospital & Doctor details */
+.history-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.history-hospital {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.history-session {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.history-doctor-name {
+  color: var(--text-muted);
+}
+
+/* Card Footer: Timestamp */
+.history-card-footer {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* =========================================================================
+   STATUS BADGES — FULL COLOR COORDINATION IN BOTH THEMES
+   ========================================================================= */
+.ticket-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* COMPLETED: Accessible green */
+.badge-completed {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+  border: 1px solid var(--status-active-border);
+}
+
+/* CANCELLED: Soft red */
+.badge-cancelled {
+  background-color: var(--status-danger-bg);
+  color: var(--status-danger-text);
+  border: 1px solid var(--status-danger-border);
+}
+
+/* NO_SHOW: Distinct muted rose */
+.badge-noshow {
+  background-color: #FFF1F2;
+  color: #9F1239;
+  border: 1px solid #FECDD3;
+}
+
+[data-theme="dark"] .badge-noshow {
+  background-color: rgba(159, 18, 57, 0.35);
+  color: #FDA4AF;
+  border: 1px solid #9F1239;
+}
+
+/* WAITING: Warm amber / cream */
+.badge-waiting {
+  background-color: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+  border: 1px solid var(--status-waiting-border);
+}
+
+/* CALLING: Vibrant amber / orange */
+.badge-calling {
+  background-color: var(--status-calling-bg);
+  color: var(--status-calling-text);
+  border: 1px solid var(--status-calling-border);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+/* IN_CONSULTATION: Warm gold / amber accent (not green) */
+.badge-consulting {
+  background-color: var(--status-consult-bg);
+  color: var(--status-consult-text);
+  border: 1px solid var(--status-consult-border);
+}
+
+/* SCHEDULED / PAUSED / NEUTRAL */
+.badge-scheduled,
+.badge-paused,
+.badge-neutral {
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+@media (max-width: 680px) {
+  .live-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .active-ticket-card {
+    padding: 22px 18px;
+  }
+  .history-section {
+    padding: 22px 18px;
+  }
+  .history-cards-grid {
+    grid-template-columns: 1fr;
   }
 }

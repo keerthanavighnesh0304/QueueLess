@@ -1,58 +1,81 @@
-
+import { useState, useEffect, useCallback } from 'react'
 import './Home.css'
-import { useState } from 'react'
-
 import HospitalDetails from './HospitalDetails'
-
-const hospitals = [
-  {
-    id: 1,
-    name: 'City Care Hospital',
-    location: 'Gandhipuram, Coimbatore',
-    queue: 12,
-    wait: 25,
-    status: 'Open',
-  },
-  {
-    id: 2,
-    name: 'Green Life Clinic',
-    location: 'RS Puram, Coimbatore',
-    queue: 5,
-    wait: 10,
-    status: 'Open',
-  },
-  {
-    id: 3,
-    name: 'Sunrise Medical Center',
-    location: 'Peelamedu, Coimbatore',
-    queue: 20,
-    wait: 45,
-    status: 'Open',
-  },
-]
+import { fetchHospitalsApi } from '../api/hospitals'
 
 function Home({ onJoin }) {
+  const [hospitals, setHospitals] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedHospital, setSelectedHospital] = useState(null)
 
-  
+  const loadHospitals = useCallback(async (query) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await fetchHospitalsApi({ search: query.trim() })
+      setHospitals(data || [])
+    } catch (err) {
+      setError(err.message || 'Failed to load approved hospitals. Please check server connectivity.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Debounced search that also executes initial load
+  useEffect(() => {
+    let isMounted = true
+    const abortController = new AbortController()
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await fetchHospitalsApi({
+          search: search.trim(),
+          signal: abortController.signal,
+        })
+        if (isMounted) {
+          setHospitals(data || [])
+          setError(null)
+        }
+      } catch (err) {
+        if (isMounted && err?.name !== 'AbortError') {
+          setError(err.message || 'Failed to load approved hospitals. Please check server connectivity.')
+        }
+      } finally {
+        if (isMounted && !abortController.signal.aborted) {
+          setIsLoading(false)
+        }
+      }
+    }, search ? 300 : 0)
+
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+      abortController.abort()
+    }
+  }, [search])
 
   // Display selected hospital details
   if (selectedHospital) {
-  return (
-    <HospitalDetails
-      hospital={selectedHospital}
-      onBack={() => setSelectedHospital(null)}
-      onJoin={() => onJoin(selectedHospital)}
-    />
-  )
-}
+    return (
+      <HospitalDetails
+        hospital={selectedHospital}
+        onBack={() => setSelectedHospital(null)}
+        onJoin={(ticketOrHospital) => onJoin(ticketOrHospital || selectedHospital)}
+      />
+    )
+  }
 
-  // Filter hospitals based on search input
-  const filteredHospitals = hospitals.filter((hospital) =>
-    hospital.name.toLowerCase().includes(search.toLowerCase()) ||
-    hospital.location.toLowerCase().includes(search.toLowerCase())
-  )
+  // Client-side instant filter fallback for responsiveness
+  const filteredHospitals = hospitals.filter((hospital) => {
+    const query = search.toLowerCase().trim()
+    if (!query) return true
+    const nameMatch = hospital.name?.toLowerCase().includes(query)
+    const addressMatch = hospital.address?.toLowerCase().includes(query)
+    const cityMatch = hospital.city?.toLowerCase().includes(query)
+    return nameMatch || addressMatch || cityMatch
+  })
 
   return (
     <main className="home-page">
@@ -60,21 +83,30 @@ function Home({ onJoin }) {
         <h1>Healthcare, Without the Waiting.</h1>
 
         <p>
-          Find nearby hospitals, check queue status,
+          Find approved nearby hospitals, check real-time queue status,
           and save your time with QueueLess.
         </p>
 
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search hospitals or clinics..."
+            placeholder="Search hospitals or clinics by name or location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              type="button"
+              className="clear-search-btn"
+              onClick={() => setSearch('')}
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <p className="location-text">
-          Showing sample hospitals in Coimbatore
+          Showing approved healthcare facilities in Coimbatore
         </p>
       </section>
 
@@ -82,49 +114,87 @@ function Home({ onJoin }) {
         <div className="section-heading">
           <div>
             <h2>Nearby Hospitals</h2>
-            <p>Explore hospitals and their current queue status.</p>
+            <p>Explore approved hospitals and their current live consultation status.</p>
           </div>
         </div>
 
-        <div className="hospital-grid">
-          {filteredHospitals.map((hospital) => (
-            <div className="hospital-card" key={hospital.id}>
-              <div className="hospital-card-header">
-                <h3>{hospital.name}</h3>
-                <span className="status">{hospital.status}</span>
-              </div>
+        {error && (
+          <div className="alert alert-error" role="alert">
+            <p><strong>Connection Error:</strong> {error}</p>
+            <button
+              type="button"
+              className="retry-button"
+              onClick={() => loadHospitals(search)}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-              <p className="hospital-location">
-                {hospital.location}
-              </p>
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="spinner" />
+            <p>Loading approved hospitals from QueueLess API...</p>
+          </div>
+        ) : (
+          <>
+            <div className="hospital-grid">
+              {filteredHospitals.map((hospital) => (
+                <div className="hospital-card" key={hospital.id}>
+                  <div className="hospital-card-header">
+                    <h3>{hospital.name}</h3>
+                    <span className="status">
+                      {hospital.is_accepting_bookings ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
 
-              <div className="queue-info">
-                <div>
-                  <h4>{hospital.queue}</h4>
-                  <span>People in queue</span>
+                  <p className="hospital-location">
+                    {hospital.address ? `${hospital.address}, ` : ''}{hospital.city || 'Coimbatore'}
+                  </p>
+
+                  <div className="queue-info">
+                    <div>
+                      <h4>{hospital.avg_consultation_time_mins || 15} min</h4>
+                      <span>Avg. Consultation</span>
+                    </div>
+
+                    <div>
+                      <span className="status-badge-live">Live OPDs</span>
+                      <span>Real-time Queues</span>
+                    </div>
+                  </div>
+
+                  <button
+                    className="view-button"
+                    type="button"
+                    onClick={() => setSelectedHospital(hospital)}
+                  >
+                    View Hospital & Queues
+                  </button>
                 </div>
-
-                <div>
-                  <h4>{hospital.wait} min</h4>
-                  <span>Estimated wait</span>
-                </div>
-              </div>
-
-              <button
-                className="view-button"
-                type="button"
-                onClick={() => setSelectedHospital(hospital)}
-              >
-                View Hospital
-              </button>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {filteredHospitals.length === 0 && (
-          <p className="no-results">
-            No hospitals found. Try another search.
-          </p>
+            {!isLoading && filteredHospitals.length === 0 && (
+              <div className="no-results-card">
+                <p className="no-results-title">No approved hospitals found.</p>
+                <p className="no-results-desc">
+                  {search
+                    ? `No healthcare facilities match "${search}". Try searching for another name or location.`
+                    : 'No approved facilities are currently accepting bookings.'}
+                </p>
+                {search && (
+                  <button
+                    type="button"
+                    className="clear-filters-btn"
+                    onClick={() => setSearch('')}
+                  >
+                    Reset Search
+                  </button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </section>
     </main>

@@ -1,32 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  color: #172b4d;
-  background: #f5f7fb;
+  /* Explicit browser color-scheme synchronization */
+  color-scheme: light;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Brand Typography */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* =========================================================================
+     WARM NEUTRAL & AMBER PALETTE FOUNDATION — LIGHT THEME
+     - Burnt orange: #92400E (brand accents, strong actions, high-contrast text)
+     - Amber: #D97706 / #F59E0B (primary interactive accents and highlights)
+     - Warm gold: #FCD34D (subtle decorative highlights and selected states)
+     - Warm ivory: #FFFBEB / #FAF7F2 (page backgrounds and gentle warm surfaces)
+     - White: #FFFFFF (cards, modals, form surfaces)
+     - Dark brown: #451A03 / #291508 (strong text and headings)
+     - Warm neutral: #78716C / #57534E (secondary text, borders, subtle UI)
+     ========================================================================= */
+  --color-burnt-orange: #92400E;
+  --color-burnt-orange-hover: #78350F;
+  --color-amber: #D97706;
+  --color-amber-vibrant: #F59E0B;
+  --color-amber-hover: #B45309;
+  --color-gold: #FCD34D;
+  --color-gold-subtle: #FEF3C7;
+  --color-ivory: #FFFBEB;
+  --color-dark-brown: #451A03;
+  --color-dark-brown-heading: #291508;
+  --color-stone: #78716C;
+  --color-stone-dark: #57534E;
+  --color-stone-light: #E7E5E4;
+  --color-stone-subtle: #F5F5F4;
+
+  /* Canonical brand references */
+  --color-brand: #92400E;
+  --color-brand-hover: #78350F;
+  --color-accent: #D97706;
+  --color-accent-hover: #B45309;
+  --color-accent-subtle: #FEF3C7;
+  --color-accent-border: #FDE68A;
+  --color-accent-glow: rgba(217, 119, 6, 0.22);
+
+  /* Compatibility mapping to prevent disruption in existing class names */
+  --color-teal: #D97706;
+  --color-teal-hover: #B45309;
+  --color-teal-light: #F59E0B;
+  --color-teal-subtle: #FEF3C7;
+  --color-teal-border: #FDE68A;
+  --color-teal-glow: rgba(217, 119, 6, 0.22);
+
+  --color-navy: #451A03;
+  --color-navy-dark: #291508;
+  --color-navy-light: #57534E;
+
+  /* Semantic Theme Tokens — LIGHT MODE */
+  --bg-app: #FAF7F2;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-subtle: #F5F0E8;
+  --bg-surface-cream: #FFFBEB;
+  --bg-input: #FFFFFF;
+  --bg-hero: linear-gradient(180deg, #FFFBEB 0%, #FAF7F2 100%);
+  --bg-card: #FFFFFF;
+
+  --text-primary: #291508;
+  --text-secondary: #57534E;
+  --text-muted: #78716C;
+  --text-inverse: #FFFFFF;
+
+  --border-primary: #E7E2DA;
+  --border-subtle: #F0EBE3;
+  --border-focus: #D97706;
+
+  --shadow-sm: 0 1px 2px 0 rgba(69, 26, 3, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(69, 26, 3, 0.06), 0 2px 4px -2px rgba(69, 26, 3, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(69, 26, 3, 0.08), 0 4px 6px -4px rgba(69, 26, 3, 0.03);
+  --shadow-card: 0 2px 8px rgba(69, 26, 3, 0.04);
+
+  /* Status Badges & Alerts (Green strictly preserved for real success states) */
+  --status-active-bg: #ECFDF5;
+  --status-active-text: #065F46;
+  --status-active-border: #A7F3D0;
+
+  --status-waiting-bg: #FEF3C7;
+  --status-waiting-text: #92400E;
+  --status-waiting-border: #FCD34D;
+
+  --status-calling-bg: #FFFBEB;
+  --status-calling-text: #B45309;
+  --status-calling-border: #F59E0B;
+
+  --status-consult-bg: #FFF8E7;
+  --status-consult-text: #92400E;
+  --status-consult-border: #FCD34D;
+
+  --status-danger-bg: #FEF2F2;
+  --status-danger-text: #991B1B;
+  --status-danger-border: #FECACA;
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  /* Explicit browser color-scheme synchronization */
+  color-scheme: dark;
+
+  /* =========================================================================
+     WARM NEUTRAL & AMBER PALETTE FOUNDATION — DARK THEME
+     - Deep espresso and warm charcoal backgrounds: #14100D / #191410
+     - Slightly lighter brown/charcoal cards: #201A15 / #27201A
+     - Warm cream primary text: #FDF8F0 / #FEF3C7
+     - Muted beige secondary text: #D6CEBF / #A89F91
+     - Amber accents for primary actions: #F59E0B / #FBBF24
+     - Subtle warm borders: #3A3027 / #4A3E33
+     ========================================================================= */
+  --color-burnt-orange: #B45309;
+  --color-burnt-orange-hover: #D97706;
+  --color-amber: #F59E0B;
+  --color-amber-vibrant: #FBBF24;
+  --color-amber-hover: #D97706;
+  --color-gold: #FCD34D;
+  --color-gold-subtle: rgba(252, 211, 77, 0.15);
+  --color-ivory: #FEF3C7;
+  --color-dark-brown: #FEF3C7;
+  --color-dark-brown-heading: #FDF8F0;
+  --color-stone: #A89F91;
+  --color-stone-dark: #D6CEBF;
+  --color-stone-light: #3A3027;
+  --color-stone-subtle: #201A15;
+
+  --color-brand: #F59E0B;
+  --color-brand-hover: #FBBF24;
+  --color-accent: #F59E0B;
+  --color-accent-hover: #FBBF24;
+  --color-accent-subtle: rgba(245, 158, 11, 0.15);
+  --color-accent-border: rgba(245, 158, 11, 0.35);
+  --color-accent-glow: rgba(245, 158, 11, 0.25);
+
+  --color-teal: #F59E0B;
+  --color-teal-hover: #FBBF24;
+  --color-teal-light: #FCD34D;
+  --color-teal-subtle: rgba(245, 158, 11, 0.15);
+  --color-teal-border: rgba(245, 158, 11, 0.35);
+  --color-teal-glow: rgba(245, 158, 11, 0.25);
+
+  --color-navy: #27201A;
+  --color-navy-dark: #1A1410;
+  --color-navy-light: #3A3027;
+
+  /* Semantic Theme Tokens — DARK MODE */
+  --bg-app: #14100D;
+  --bg-surface: #201A15;
+  --bg-surface-elevated: #27201A;
+  --bg-surface-subtle: #1C1612;
+  --bg-surface-cream: #28211A;
+  --bg-input: #18130F;
+  --bg-hero: linear-gradient(180deg, #221B16 0%, #14100D 100%);
+  --bg-card: #201A15;
+
+  --text-primary: #FDF8F0;
+  --text-secondary: #D6CEBF;
+  --text-muted: #A89F91;
+  --text-inverse: #14100D;
+
+  --border-primary: #3A3027;
+  --border-subtle: #29211A;
+  --border-focus: #F59E0B;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.45);
+
+  /* Status Badges & Alerts (Success Green preserved) */
+  --status-active-bg: rgba(6, 78, 59, 0.45);
+  --status-active-text: #6EE7B7;
+  --status-active-border: #065F46;
+
+  --status-waiting-bg: rgba(146, 64, 14, 0.3);
+  --status-waiting-text: #FCD34D;
+  --status-waiting-border: rgba(245, 158, 11, 0.35);
+
+  --status-calling-bg: rgba(146, 64, 14, 0.45);
+  --status-calling-text: #FDE68A;
+  --status-calling-border: #F59E0B;
+
+  --status-consult-bg: rgba(217, 119, 6, 0.35);
+  --status-consult-text: #FBBF24;
+  --status-consult-border: #D97706;
+
+  --status-danger-bg: rgba(127, 29, 29, 0.45);
+  --status-danger-text: #FCA5A5;
+  --status-danger-border: #991B1B;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
   min-width: 320px;
   min-height: 100vh;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-button,
-input {
-  font: inherit;
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Base form controls styling — explicit color: inherit ensures no black user-agent text on dark theme */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 
 button {
   cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
 }
 
 a {
@@ -34,7 +238,201 @@ a {
   color: inherit;
 }
 
-#root {
-  min-height: 100vh;
-  width: 100%;
+a:visited {
+  color: inherit;
+}
+
+/* Native date picker color scheme synchronization */
+input[type="date"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Shared Accessible Action Buttons System */
+.primary-action-btn,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--color-amber);
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 22px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.primary-action-btn:hover,
+.btn-primary:hover {
+  background-color: var(--color-amber-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px var(--color-accent-glow);
+}
+
+.primary-action-btn:active,
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.secondary-action-btn,
+.secondary-button,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary) !important;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.secondary-action-btn:hover,
+.secondary-button:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-amber);
+  color: var(--color-burnt-orange) !important;
+  background-color: var(--color-accent-subtle);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .secondary-action-btn:hover,
+[data-theme="dark"] .secondary-button:hover:not(:disabled),
+[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+  color: var(--color-gold) !important;
+}
+
+.secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.logout-button,
+.btn-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger-text) !important;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.logout-button:hover,
+.btn-destructive:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Shared Semantic Ticket Status Badges System */
+.ticket-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* COMPLETED: strictly accessible green */
+.badge-completed {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+  border: 1px solid var(--status-active-border);
+}
+
+/* CANCELLED: soft accessible red */
+.badge-cancelled {
+  background-color: var(--status-danger-bg);
+  color: var(--status-danger-text);
+  border: 1px solid var(--status-danger-border);
+}
+
+/* NO_SHOW: distinct muted rose/wine */
+.badge-noshow {
+  background-color: #FFF1F2;
+  color: #9F1239;
+  border: 1px solid #FECDD3;
+}
+
+[data-theme="dark"] .badge-noshow {
+  background-color: rgba(159, 18, 57, 0.35);
+  color: #FDA4AF;
+  border: 1px solid #9F1239;
+}
+
+/* WAITING: warm amber / cream */
+.badge-waiting {
+  background-color: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+  border: 1px solid var(--status-waiting-border);
+}
+
+/* CALLING / CALLED: visible vibrant amber / orange */
+.badge-calling {
+  background-color: var(--status-calling-bg);
+  color: var(--status-calling-text);
+  border: 1px solid var(--status-calling-border);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+/* IN_CONSULTATION / SERVING: distinct warm gold / amber highlight (not green) */
+.badge-consulting {
+  background-color: var(--status-consult-bg);
+  color: var(--status-consult-text);
+  border: 1px solid var(--status-consult-border);
+}
+
+/* SCHEDULED / PAUSED / NEUTRAL */
+.badge-scheduled,
+.badge-paused,
+.badge-neutral {
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
