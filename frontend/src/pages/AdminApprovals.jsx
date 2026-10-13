@@ -5,6 +5,7 @@ import {
   fetchPendingHospitalsApi,
   approveHospitalApi,
   rejectHospitalApi,
+  provisionHospitalStaffApi,
 } from '../api/admin'
 import './AdminApprovals.css'
 
@@ -16,6 +17,14 @@ function AdminApprovals() {
   const [error, setError] = useState(null)
   const [actionSuccess, setActionSuccess] = useState(null)
   const [processingId, setProcessingId] = useState(null)
+
+  // Staff provisioning state
+  const [provisionHospital, setProvisionHospital] = useState(null)
+  const [provisionData, setProvisionData] = useState({ fullName: '', email: '', phone: '', initialPassword: '' })
+  const [provisionSuccess, setProvisionSuccess] = useState(null)
+  const [isProvisioning, setIsProvisioning] = useState(false)
+  const [provisionError, setProvisionError] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -68,11 +77,59 @@ function AdminApprovals() {
       await approveHospitalApi(hospitalId)
       setActionSuccess(`Successfully approved "${hospitalName}". Bookings are now enabled.`)
       setHospitals((prev) => prev.filter((h) => h.id !== hospitalId))
+      setProvisionHospital({ id: hospitalId, name: hospitalName })
+      setProvisionData({ fullName: '', email: '', phone: '', initialPassword: '' })
+      setProvisionSuccess(null)
+      setProvisionError(null)
+      setCopied(false)
     } catch (err) {
       setError(err.message || `Failed to approve hospital #${hospitalId}.`)
     } finally {
       setProcessingId(null)
     }
+  }
+
+  async function handleProvisionSubmit(e) {
+    e.preventDefault()
+    if (!provisionHospital || isProvisioning) return
+    const name = provisionData.fullName.trim()
+    const email = provisionData.email.trim()
+
+    if (!name || name.length < 2) {
+      setProvisionError('Full name must be at least 2 characters.')
+      return
+    }
+    if (!email || !email.includes('@')) {
+      setProvisionError('A valid email address is required.')
+      return
+    }
+
+    setIsProvisioning(true)
+    setProvisionError(null)
+
+    try {
+      const payload = {
+        full_name: name,
+        email,
+        phone: provisionData.phone.trim() || undefined,
+        initial_password: provisionData.initialPassword.trim() || undefined,
+      }
+      const res = await provisionHospitalStaffApi(provisionHospital.id, payload)
+      setProvisionSuccess(res)
+    } catch (err) {
+      setProvisionError(err.message || 'Failed to provision staff account.')
+    } finally {
+      setIsProvisioning(false)
+    }
+  }
+
+  function handleCopyCredentials() {
+    if (!provisionSuccess) return
+    const text = `QueueLess Staff Credentials\nHospital: ${provisionHospital?.name}\nEmail: ${provisionSuccess.user.email}\nTemporary Password: ${provisionSuccess.temporary_password}\nLogin Portal: ${window.location.origin}/profile`
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    })
   }
 
   async function handleReject(hospitalId, hospitalName) {
@@ -273,6 +330,144 @@ function AdminApprovals() {
           </div>
         )}
       </div>
+
+      {/* Staff Provisioning Modal */}
+      {provisionHospital && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="provision-modal-card">
+            <div className="modal-header">
+              <h3>Provision Initial Staff Account</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setProvisionHospital(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="modal-subhead">
+              Create the first staff/manager account for <strong>{provisionHospital.name}</strong>.
+            </p>
+
+            {provisionSuccess ? (
+              <div className="provision-credentials-card">
+                <div className="credentials-badge">✓ Account Provisioned</div>
+                <h4>Initial Staff Credentials</h4>
+                <p className="credentials-warning">
+                  Securely copy and share these credentials with the hospital contact person. The temporary password cannot be displayed again.
+                </p>
+
+                <div className="credential-row">
+                  <span className="cred-label">Login Email:</span>
+                  <span className="cred-val font-mono">{provisionSuccess.user.email}</span>
+                </div>
+                <div className="credential-row">
+                  <span className="cred-label">Temporary Password:</span>
+                  <span className="cred-val font-mono highlight-password">
+                    {provisionSuccess.temporary_password}
+                  </span>
+                </div>
+
+                <div className="credential-actions">
+                  <button
+                    type="button"
+                    className="btn-copy-cred"
+                    onClick={handleCopyCredentials}
+                  >
+                    {copied ? '✓ Copied to Clipboard!' : '📋 Copy Login Details'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-done-cred"
+                    onClick={() => setProvisionHospital(null)}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleProvisionSubmit} className="provision-form">
+                {provisionError && (
+                  <div className="alert alert-error" role="alert">
+                    {provisionError}
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="staffFullName">Staff / Manager Full Name *</label>
+                  <input
+                    id="staffFullName"
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Rajesh Kumar"
+                    value={provisionData.fullName}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, fullName: e.target.value }))}
+                    disabled={isProvisioning}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="staffEmail">Staff Email Address *</label>
+                  <input
+                    id="staffEmail"
+                    type="email"
+                    required
+                    placeholder="e.g. manager@hospital.org"
+                    value={provisionData.email}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, email: e.target.value }))}
+                    disabled={isProvisioning}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="staffPhone">Contact Phone Number (Optional)</label>
+                  <input
+                    id="staffPhone"
+                    type="tel"
+                    placeholder="e.g. +91 98400 12345"
+                    value={provisionData.phone}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, phone: e.target.value }))}
+                    disabled={isProvisioning}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="staffInitialPassword">Initial Password (Optional)</label>
+                  <input
+                    id="staffInitialPassword"
+                    type="password"
+                    placeholder="Leave blank to generate secure random password"
+                    value={provisionData.initialPassword}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, initialPassword: e.target.value }))}
+                    disabled={isProvisioning}
+                  />
+                  <span className="field-hint">Leave blank to auto-generate a secure temporary password.</span>
+                </div>
+
+                <div className="modal-actions-bar">
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => setProvisionHospital(null)}
+                    disabled={isProvisioning}
+                  >
+                    Skip / Do Later
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-submit-provision"
+                    disabled={isProvisioning}
+                  >
+                    {isProvisioning ? 'Provisioning...' : 'Provision Staff Account →'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }

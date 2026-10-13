@@ -31,3 +31,18 @@ export async function approveHospitalApi(hospitalId) {
 export async function rejectHospitalApi(hospitalId) {
   return apiClient.post(`/admin/hospitals/${hospitalId}/reject`);
 }
+
+/**
+ * Provisions the initial staff/manager account for an approved hospital.
+ *
+ * @param {number|string} hospitalId
+ * @param {object} payload
+ * @param {string} payload.email
+ * @param {string} payload.full_name
+ * @param {string} [payload.phone]
+ * @param {string} [payload.initial_password]
+ * @returns {Promise<object>} StaffProvisionResponse
+ */
+export async function provisionHospitalStaffApi(hospitalId, payload) {
+  return apiClient.post(`/admin/hospitals/${hospitalId}/provision-staff`, payload);
+}

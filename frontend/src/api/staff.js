@@ -100,3 +100,33 @@ export async function createConsultationSessionApi(hospitalId, payload) {
 export async function updateSessionStatusApi(hospitalId, sessionId, status) {
   return apiClient.patch(`/hospitals/${hospitalId}/sessions/${sessionId}/status`, { status });
 }
+
+/**
+ * Creates a new clinical department for a hospital.
+ *
+ * @param {number|string} hospitalId
+ * @param {object} payload
+ * @param {string} payload.name
+ * @param {string} [payload.description]
+ * @returns {Promise<object>} DepartmentOut
+ */
+export async function createDepartmentApi(hospitalId, payload) {
+  return apiClient.post(`/hospitals/${hospitalId}/departments`, payload);
+}
+
+/**
+ * Registers a new doctor under a verified department in a hospital.
+ *
+ * @param {number|string} hospitalId
+ * @param {object} payload
+ * @param {number} payload.department_id
+ * @param {string} payload.full_name
+ * @param {string} [payload.qualification]
+ * @param {string} payload.specialization
+ * @param {string} [payload.ticket_prefix]
+ * @param {number} [payload.avg_consultation_time_mins]
+ * @returns {Promise<object>} DoctorOut
+ */
+export async function createDoctorApi(hospitalId, payload) {
+  return apiClient.post(`/hospitals/${hospitalId}/doctors`, payload);
+}

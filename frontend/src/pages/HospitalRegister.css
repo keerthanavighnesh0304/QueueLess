@@ -1,0 +1,613 @@
+/* =========================================================================
+   QueueLess — Hospital Registration Page Styles
+   Preserves the Warm Neutral & Amber Design System:
+   - Warm Ivory & Cream Surfaces (#FAF7F2 / #FFFBEB)
+   - Amber (#D97706) & Burnt Orange (#92400E) Primary Accents
+   - Deep Espresso & Warm Charcoal in Dark Theme
+   ========================================================================= */
+
+.hospital-register-page {
+  padding: 32px 5% 64px;
+  min-height: calc(100vh - 80px);
+  background: var(--bg-app);
+}
+
+.hospital-register-container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================================================
+   1. Breadcrumb
+   ========================================================================= */
+.register-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.register-breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.register-breadcrumb a:hover {
+  color: var(--color-amber);
+}
+
+.breadcrumb-separator {
+  opacity: 0.5;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* =========================================================================
+   2. Main Two-Column Layout
+   ========================================================================= */
+.register-content-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 36px;
+  align-items: flex-start;
+}
+
+/* Left Header Panel */
+.register-header-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 96px;
+}
+
+.register-badge-pill {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--color-accent-subtle);
+  color: var(--color-burnt-orange);
+  border: 1px solid var(--color-accent-border);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="dark"] .register-badge-pill {
+  color: var(--color-gold);
+}
+
+.register-header-panel h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.register-subhead {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Administrative Notice Callout */
+.admin-notice-box {
+  background: var(--bg-surface-cream);
+  border: 1.5px solid var(--color-accent-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.notice-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.notice-body h4 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-burnt-orange);
+  letter-spacing: 0.01em;
+}
+
+[data-theme="dark"] .notice-body h4 {
+  color: var(--color-gold);
+}
+
+.notice-body p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* Onboarding Perks */
+.onboarding-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.perk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.perk-icon {
+  color: #065F46;
+  background: #ECFDF5;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+[data-theme="dark"] .perk-icon {
+  background: rgba(6, 78, 59, 0.45);
+  color: #6EE7B7;
+}
+
+.perk-item strong {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* =========================================================================
+   3. Registration Form Card
+   ========================================================================= */
+.register-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 32px 34px;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-fast);
+}
+
+.form-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 22px;
+}
+
+.form-card-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.required-note {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Alert inside card */
+.register-card .alert {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+}
+
+.register-card .alert-error {
+  background: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger-text);
+}
+
+/* Form Structure */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldset-legend {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-burnt-orange);
+  padding: 0;
+  margin-bottom: 4px;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 8px;
+}
+
+[data-theme="dark"] .fieldset-legend {
+  color: var(--color-gold);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-primary);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group input:focus {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Submit Actions */
+.form-submit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-submit-registration {
+  background: var(--color-burnt-orange);
+  color: #ffffff;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-submit-registration:hover:not(:disabled) {
+  background: var(--color-burnt-orange-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--color-accent-glow);
+}
+
+.btn-submit-registration:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.terms-caption {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* =========================================================================
+   4. Success Confirmation Card
+   ========================================================================= */
+.success-card {
+  max-width: 680px;
+  margin: 16px auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 44px 38px;
+}
+
+.success-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
+  border: 2px solid var(--status-active-border);
+  font-size: 32px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(6, 95, 70, 0.15);
+}
+
+.success-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--status-active-text);
+}
+
+.success-card h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.015em;
+}
+
+.success-description {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.application-summary-box {
+  width: 100%;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  gap: 12px;
+}
+
+.summary-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.summary-val {
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+}
+
+.font-mono {
+  font-family: monospace;
+  font-size: 13px;
+  background: var(--bg-input);
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-subtle);
+}
+
+.status-badge-pending {
+  background: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+  border: 1px solid var(--status-waiting-border);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.next-steps-callout {
+  width: 100%;
+  background: var(--bg-surface-cream);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 14px;
+  padding: 18px 22px;
+  text-align: left;
+}
+
+.next-steps-callout h4 {
+  margin: 0 0 10px 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--color-burnt-orange);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="dark"] .next-steps-callout h4 {
+  color: var(--color-gold);
+}
+
+.next-steps-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.next-steps-list strong {
+  color: var(--text-primary);
+}
+
+.success-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn-register-another {
+  background: var(--bg-surface-subtle);
+  border: 1.5px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 12px 22px;
+  border-radius: 11px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-register-another:hover {
+  border-color: var(--color-amber);
+  color: var(--color-burnt-orange);
+  background-color: var(--color-accent-subtle);
+}
+
+[data-theme="dark"] .btn-register-another:hover {
+  color: var(--color-gold);
+}
+
+.btn-return-hospitals {
+  background: var(--color-burnt-orange);
+  color: #ffffff !important;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 11px;
+  font-size: 13.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+}
+
+.btn-return-hospitals:hover {
+  background: var(--color-burnt-orange-hover);
+  transform: translateY(-1px);
+}
+
+/* =========================================================================
+   5. Responsive Breakpoints
+   ========================================================================= */
+@media (max-width: 960px) {
+  .register-content-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .register-header-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .hospital-register-page {
+    padding: 20px 4% 48px;
+  }
+
+  .register-card {
+    padding: 24px 20px;
+  }
+
+  .register-header-panel h1 {
+    font-size: 26px;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .btn-register-another,
+  .btn-return-hospitals {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}

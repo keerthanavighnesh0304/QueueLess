@@ -22,7 +22,9 @@ from app.schemas import (
     HospitalRegisterRequest,
     HospitalOut,
     HospitalDetailOut,
+    DepartmentCreateRequest,
     DepartmentOut,
+    DoctorCreateRequest,
     DoctorOut,
     ConsultationSessionOut,
     ConsultationSessionCreateRequest,
@@ -141,6 +143,18 @@ def get_hospital_session_or_404(
         422: {"description": "Validation error in coordinates or registration fields"},
     },
 )
+@router.post(
+    "",
+    response_model=HospitalOut,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
+)
+@router.post(
+    "/",
+    response_model=HospitalOut,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
+)
 def register_hospital(
     payload: HospitalRegisterRequest,
     db: Session = Depends(get_db),
@@ -152,6 +166,7 @@ def register_hospital(
     2. Duplicates return HTTP 409 Conflict.
     3. Status is strictly forced to PENDING_APPROVAL with bookings disabled.
     4. Client cannot assign roles or administrative privileges.
+    5. Contact information is preserved cleanly for admin review.
     """
     normalized_reg_no = payload.registration_number.strip().upper()
 
@@ -165,13 +180,36 @@ def register_hospital(
             detail=f"A hospital with registration number '{normalized_reg_no}' is already registered.",
         )
 
+    # Format contact info cleanly into address for admin review without requiring DB schema migration
+    contact_parts = []
+    if payload.contact_person_name and payload.contact_person_name.strip():
+        contact_parts.append(f"Contact: {payload.contact_person_name.strip()}")
+    if payload.contact_phone and payload.contact_phone.strip():
+        contact_parts.append(payload.contact_phone.strip())
+    if payload.contact_email and payload.contact_email.strip():
+        contact_parts.append(payload.contact_email.strip())
+
+    base_address = payload.address.strip()
+    if contact_parts:
+        contact_suffix = f" [{'; '.join(contact_parts)}]"
+        if len(base_address) + len(contact_suffix) <= 255:
+            full_address = base_address + contact_suffix
+        else:
+            max_len = 255 - len(contact_suffix)
+            full_address = base_address[:max_len].rstrip() + contact_suffix
+    else:
+        full_address = base_address[:255]
+
+    lat = payload.latitude if payload.latitude is not None else 11.016844
+    lng = payload.longitude if payload.longitude is not None else 76.955832
+
     hospital = Hospital(
         name=payload.name.strip(),
         registration_number=normalized_reg_no,
-        address=payload.address.strip(),
+        address=full_address,
         city=payload.city.strip(),
-        latitude=payload.latitude,
-        longitude=payload.longitude,
+        latitude=lat,
+        longitude=lng,
         status=HospitalStatus.PENDING_APPROVAL,
         is_accepting_bookings=False,
         avg_consultation_time_mins=payload.avg_consultation_time_mins,
@@ -273,6 +311,64 @@ def list_departments(
     ).order_by(Department.name.asc()).all()
 
 
+@router.post(
+    "/{hospital_id}/departments",
+    response_model=DepartmentOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new clinical department for a hospital (Staff/Admin only)",
+    responses={
+        201: {"description": "Department created successfully"},
+        400: {"description": "Invalid hospital status"},
+        401: {"description": "Unauthenticated access"},
+        403: {"description": "Forbidden - patient or staff from another hospital"},
+        404: {"description": "Hospital not found"},
+        409: {"description": "Department with this name already exists in this hospital"},
+    },
+)
+def create_department(
+    hospital_id: int,
+    payload: DepartmentCreateRequest,
+    current_user: User = Depends(require_hospital_staff),
+    db: Session = Depends(get_db),
+):
+    """
+    Creates a new clinical department in the specified hospital.
+    Requires authenticated staff assigned to this hospital (or platform admin).
+    """
+    hospital = db.query(Hospital).filter(Hospital.id == hospital_id).first()
+    if not hospital:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Hospital not found",
+        )
+    if hospital.status != HospitalStatus.APPROVED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot add departments to hospital with status '{hospital.status.value}'. Hospital must be APPROVED.",
+        )
+
+    clean_name = payload.name.strip()
+    existing = db.query(Department).filter(
+        Department.hospital_id == hospital_id,
+        func.lower(Department.name) == clean_name.lower(),
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A department named '{clean_name}' already exists in this hospital.",
+        )
+
+    department = Department(
+        hospital_id=hospital_id,
+        name=clean_name,
+        description=payload.description.strip() if payload.description else None,
+    )
+    db.add(department)
+    db.commit()
+    db.refresh(department)
+    return department
+
+
 @router.get(
     "/{hospital_id}/doctors",
     response_model=list[DoctorOut],
@@ -303,6 +399,71 @@ def list_doctors(
         query = query.filter(Doctor.department_id == department_id)
 
     return query.order_by(Doctor.full_name.asc()).all()
+
+
+@router.post(
+    "/{hospital_id}/doctors",
+    response_model=DoctorOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new doctor under a department in this hospital (Staff/Admin only)",
+    responses={
+        201: {"description": "Doctor created successfully"},
+        400: {"description": "Department does not belong to this hospital or hospital not approved"},
+        401: {"description": "Unauthenticated access"},
+        403: {"description": "Forbidden - patient or staff from another hospital"},
+        404: {"description": "Hospital or department not found"},
+    },
+)
+def create_doctor(
+    hospital_id: int,
+    payload: DoctorCreateRequest,
+    current_user: User = Depends(require_hospital_staff),
+    db: Session = Depends(get_db),
+):
+    """
+    Registers a new practicing physician under a verified department in this hospital.
+    Requires authenticated staff assigned to this hospital (or platform admin).
+    Strictly verifies that the department belongs to this hospital.
+    """
+    hospital = db.query(Hospital).filter(Hospital.id == hospital_id).first()
+    if not hospital:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Hospital not found",
+        )
+    if hospital.status != HospitalStatus.APPROVED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot add doctors to hospital with status '{hospital.status.value}'. Hospital must be APPROVED.",
+        )
+
+    # Department validation
+    department = db.query(Department).filter(Department.id == payload.department_id).first()
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found",
+        )
+    if department.hospital_id != hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Department does not belong to this hospital",
+        )
+
+    doctor = Doctor(
+        hospital_id=hospital_id,
+        department_id=payload.department_id,
+        full_name=payload.full_name.strip(),
+        qualification=payload.qualification.strip() if payload.qualification else None,
+        specialization=payload.specialization.strip(),
+        ticket_prefix=payload.ticket_prefix.strip().upper(),
+        avg_consultation_time_mins=payload.avg_consultation_time_mins,
+        is_active=True,
+    )
+    db.add(doctor)
+    db.commit()
+    db.refresh(doctor)
+    return doctor
 
 
 @router.get(

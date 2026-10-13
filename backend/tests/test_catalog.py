@@ -820,3 +820,108 @@ def test_staff_update_session_status_cross_hospital_forbidden(
     )
     assert resp.status_code == 403
     assert "access denied" in resp.json()["detail"].lower()
+
+
+# ============================================================================
+# Department & Doctor Creation Tests
+# ============================================================================
+
+def test_create_department_success(client: TestClient, staff1_token: str):
+    """Staff member of Hospital 1 successfully creates a new clinical department."""
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "Orthopedics", "description": "Bone and joint care"},
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["name"] == "Orthopedics"
+    assert data["hospital_id"] == 1
+    assert data["description"] == "Bone and joint care"
+
+
+def test_create_department_cross_hospital_forbidden(client: TestClient, staff2_token: str):
+    """Staff of Hospital 2 cannot create a department in Hospital 1."""
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "Dermatology"},
+        headers={"Authorization": f"Bearer {staff2_token}"},
+    )
+    assert resp.status_code == 403
+    assert "access denied" in resp.json()["detail"].lower()
+
+
+def test_create_department_patient_forbidden(client: TestClient, patient_token: str):
+    """Patients receive 403 Forbidden when attempting to create a department."""
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "Urology"},
+        headers={"Authorization": f"Bearer {patient_token}"},
+    )
+    assert resp.status_code == 403
+
+
+def test_create_department_duplicate_name_rejected(client: TestClient, staff1_token: str):
+    """Duplicate department name in the same hospital returns 409 Conflict."""
+    # Cardiology is already seeded in Hospital 1
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "Cardiology"},
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 409
+    assert "already exists" in resp.json()["detail"].lower()
+
+
+def test_create_doctor_success(client: TestClient, staff1_token: str):
+    """Staff member creates a doctor in their hospital's verified department."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 1,
+            "full_name": "Dr. Kavitha Raman",
+            "qualification": "MD, DM",
+            "specialization": "Interventional Cardiology",
+            "ticket_prefix": "KAV",
+            "avg_consultation_time_mins": 20,
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["full_name"] == "Dr. Kavitha Raman"
+    assert data["hospital_id"] == 1
+    assert data["department_id"] == 1
+    assert data["ticket_prefix"] == "KAV"
+    assert data["is_active"] is True
+
+
+def test_create_doctor_cross_hospital_forbidden(client: TestClient, staff2_token: str):
+    """Staff of Hospital 2 cannot create a doctor in Hospital 1."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 1,
+            "full_name": "Dr. Unauthorized",
+            "specialization": "General",
+        },
+        headers={"Authorization": f"Bearer {staff2_token}"},
+    )
+    assert resp.status_code == 403
+    assert "access denied" in resp.json()["detail"].lower()
+
+
+def test_create_doctor_invalid_department_hospital_mismatch(client: TestClient, staff1_token: str):
+    """Creating a doctor with a department belonging to another hospital returns 400 Bad Request."""
+    # Department 3 belongs to Hospital 2 (Pediatrics), but request targets Hospital 1
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 3,
+            "full_name": "Dr. Mismatched",
+            "specialization": "Pediatrics",
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 400
+    assert "does not belong to this hospital" in resp.json()["detail"].lower()

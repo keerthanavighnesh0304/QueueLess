@@ -48,8 +48,11 @@ class HospitalRegisterRequest(BaseModel):
     registration_number: str = Field(..., min_length=2, max_length=50)
     address: str = Field(..., min_length=5, max_length=255)
     city: str = Field(default="Coimbatore", min_length=2, max_length=100)
-    latitude: float = Field(..., ge=-90.0, le=90.0)
-    longitude: float = Field(..., ge=-180.0, le=180.0)
+    contact_person_name: Optional[str] = Field(default=None, max_length=100)
+    contact_email: Optional[str] = Field(default=None, max_length=150)
+    contact_phone: Optional[str] = Field(default=None, max_length=30)
+    latitude: Optional[float] = Field(default=11.016844, ge=-90.0, le=90.0)
+    longitude: Optional[float] = Field(default=76.955832, ge=-180.0, le=180.0)
     avg_consultation_time_mins: int = Field(default=15, ge=5, le=120)
 
 
@@ -76,9 +79,30 @@ class HospitalActionResponse(BaseModel):
     hospital: HospitalOut
 
 
+class StaffProvisionRequest(BaseModel):
+    """Admin request to provision the first or initial manager/staff account for an approved hospital."""
+    email: str = Field(..., min_length=5, max_length=150)
+    full_name: str = Field(..., min_length=2, max_length=100)
+    phone: Optional[str] = Field(default=None, max_length=30)
+    initial_password: Optional[str] = Field(default=None, min_length=8, max_length=100)
+
+
+class StaffProvisionResponse(BaseModel):
+    """Response returned upon provisioning a staff account (includes one-time temporary password)."""
+    message: str
+    user: UserOut
+    temporary_password: str
+
+
 # ============================================================================
 # Department, Doctor & Consultation Session Schemas (Milestone 3)
 # ============================================================================
+
+class DepartmentCreateRequest(BaseModel):
+    """Staff request to add a new clinical department to their hospital."""
+    name: str = Field(..., min_length=2, max_length=100)
+    description: Optional[str] = Field(default=None, max_length=255)
+
 
 class DepartmentOut(BaseModel):
     """Public representation of a clinical department."""
@@ -88,6 +112,16 @@ class DepartmentOut(BaseModel):
     description: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DoctorCreateRequest(BaseModel):
+    """Staff request to register a new doctor under a department in their hospital."""
+    department_id: int
+    full_name: str = Field(..., min_length=2, max_length=100)
+    qualification: Optional[str] = Field(default=None, max_length=100)
+    specialization: str = Field(..., min_length=2, max_length=100)
+    ticket_prefix: str = Field(default="DR", min_length=1, max_length=10)
+    avg_consultation_time_mins: int = Field(default=15, ge=5, le=120)
 
 
 class DoctorOut(BaseModel):

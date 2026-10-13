@@ -141,26 +141,35 @@ def join_session_queue(
     8. Active capacity check: CANCELLED and NO_SHOW tickets do not consume active capacity; COMPLETED and WAITING do.
     9. Atomically increments session.last_sequence_number and guarantees unique token number.
     """
-    # 1. Acquire row-level exclusive lock on ConsultationSession
-    session = db.query(ConsultationSession).filter(
+    # 1. Inspect ConsultationSession to identify target hospital
+    session_preview = db.query(ConsultationSession).filter(
         ConsultationSession.id == session_id
-    ).with_for_update().first()
+    ).first()
 
-    if not session:
+    if not session_preview:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Consultation session not found",
         )
 
-    # 2. Hospital validation
-    hospital = db.query(Hospital).filter(Hospital.id == session.hospital_id).first()
+    # 2. Acquire row-level exclusive lock on Hospital to serialize bookings and prevent
+    # concurrent duplicate active tickets at this hospital under MySQL InnoDB
+    hospital = db.query(Hospital).filter(
+        Hospital.id == session_preview.hospital_id
+    ).with_for_update().first()
+
     if not hospital or hospital.status != HospitalStatus.APPROVED or not hospital.is_accepting_bookings:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Hospital not found or not currently accepting bookings",
         )
 
-    # 3. Doctor validation
+    # 3. Acquire row-level exclusive lock on ConsultationSession for sequence number allocation
+    session = db.query(ConsultationSession).filter(
+        ConsultationSession.id == session_id
+    ).with_for_update().first()
+
+    # 4. Doctor validation
     doctor = db.query(Doctor).filter(Doctor.id == session.doctor_id).first()
     if not doctor or doctor.hospital_id != session.hospital_id or not doctor.is_active:
         raise HTTPException(
@@ -168,7 +177,7 @@ def join_session_queue(
             detail="Doctor not found or inactive in this hospital",
         )
 
-    # 4. Session status & date validation
+    # 5. Session status & date validation
     if session.session_date < date.today():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -187,17 +196,18 @@ def join_session_queue(
             detail="Consultation session queue is currently paused",
         )
 
-    # 5. Duplicate active ticket check for this patient in this session
+    # 6. Enforce ONE active ticket per patient per hospital across all doctors and sessions
+    # Using with_for_update() guarantees a current locking read of newly committed records
     existing_active = db.query(QueueTicket).filter(
-        QueueTicket.session_id == session.id,
+        QueueTicket.hospital_id == session.hospital_id,
         QueueTicket.user_id == current_patient.id,
         QueueTicket.status.in_([TicketStatus.WAITING, TicketStatus.CALLING, TicketStatus.IN_CONSULTATION]),
-    ).first()
+    ).with_for_update().first()
 
     if existing_active:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"You already hold an active queue ticket ({existing_active.ticket_number}) in this consultation session",
+            detail=f"You already hold an active queue ticket ({existing_active.ticket_number}) at this hospital",
         )
 
     # 6. Active capacity check (CANCELLED and NO_SHOW tickets do not consume active capacity)

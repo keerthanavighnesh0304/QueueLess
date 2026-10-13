@@ -116,7 +116,7 @@ class Settings(BaseSettings):
         connect_args: dict[str, Any] = {}
         ssl_dict: dict[str, Any] = {}
 
-        if self.DB_SSL_CA:
+        if self.DB_SSL_CA and self.DB_SSL_CA.strip():
             ca_path = self.DB_SSL_CA.strip()
             p = Path(ca_path)
             if not p.is_absolute() and (BACKEND_DIR / p).exists():

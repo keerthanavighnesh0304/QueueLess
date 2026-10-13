@@ -4,6 +4,7 @@ Uses an isolated in-memory SQLite database to ensure tests run independently and
 """
 
 from datetime import date, time, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -891,3 +892,90 @@ def test_no_show_rejected_from_waiting_status(
     )
     assert no_show_resp.status_code == 409
     assert "calling status" in no_show_resp.json()["detail"].lower()
+
+
+# ============================================================================
+# 9. Hospital-Wide Single Active Ticket & Concurrency Guarantees
+# ============================================================================
+
+def test_duplicate_active_ticket_different_session_same_hospital_rejected(
+    client: TestClient,
+    patient1_token: str,
+):
+    """
+    Patient cannot hold active tickets in multiple doctor sessions at the SAME hospital.
+    Joining session 1 then session 2 in Hospital 1 returns 409 Conflict.
+    """
+    # Join session 1 (Cardiology) in Hospital 1
+    resp1 = client.post(
+        "/api/sessions/1/tickets",
+        json={"patient_name": "Patient One"},
+        headers={"Authorization": f"Bearer {patient1_token}"},
+    )
+    assert resp1.status_code == 201
+    assert resp1.json()["ticket"]["status"] == "WAITING"
+
+    # Attempt to join session 2 (General OPD) in Hospital 1 while session 1 ticket is active
+    resp2 = client.post(
+        "/api/sessions/2/tickets",
+        json={"patient_name": "Patient One"},
+        headers={"Authorization": f"Bearer {patient1_token}"},
+    )
+    assert resp2.status_code == 409
+    assert "already hold an active queue ticket" in resp2.json()["detail"].lower()
+    assert "at this hospital" in resp2.json()["detail"].lower()
+
+
+def test_concurrent_booking_same_patient_same_hospital(
+    client: TestClient,
+    patient2_token: str,
+):
+    """
+    Concurrent queue join requests by the same patient for the same hospital.
+    Guarantees exactly one succeeds with 201 Created and all others receive 409 Conflict.
+    """
+    import threading
+    call_lock = threading.Lock()
+
+    def attempt_join(idx: int):
+        sess_id = 1 if idx % 2 == 0 else 2
+        with call_lock:
+            return client.post(
+                f"/api/sessions/{sess_id}/tickets",
+                json={"patient_name": f"Concurrent Patient {idx}"},
+                headers={"Authorization": f"Bearer {patient2_token}"},
+            )
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(attempt_join, i) for i in range(5)]
+        results = [f.result() for f in as_completed(futures)]
+
+    status_codes = [r.status_code for r in results]
+    success_count = status_codes.count(201)
+    conflict_count = status_codes.count(409)
+
+    assert success_count == 1, f"Expected exactly 1 successful booking, got {success_count}. Status codes: {status_codes}"
+    assert conflict_count == 4, f"Expected 4 conflicts, got {conflict_count}. Status codes: {status_codes}"
+
+
+def test_cross_patient_cancellation_forbidden(
+    client: TestClient,
+    patient1_token: str,
+    patient2_token: str,
+):
+    """Patient B cannot cancel Patient A's active queue ticket."""
+    resp1 = client.post(
+        "/api/sessions/1/tickets",
+        json={"patient_name": "Patient One"},
+        headers={"Authorization": f"Bearer {patient1_token}"},
+    )
+    assert resp1.status_code == 201
+    t1_id = resp1.json()["ticket"]["id"]
+
+    # Patient 2 attempts to cancel Patient 1's ticket
+    cancel_resp = client.post(
+        f"/api/tickets/{t1_id}/cancel",
+        headers={"Authorization": f"Bearer {patient2_token}"},
+    )
+    assert cancel_resp.status_code == 403
+    assert "own tickets" in cancel_resp.json()["detail"].lower()

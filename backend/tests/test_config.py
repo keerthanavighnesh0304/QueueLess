@@ -14,15 +14,17 @@ from app.config import (
 )
 
 
-def test_development_allows_default_jwt_secret():
+def test_development_allows_default_jwt_secret(monkeypatch):
     """Development environment must permit default fallback credentials."""
+    monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
     s = Settings(_env_file=None, ENVIRONMENT="development")
     assert s.is_production is False
     assert s.JWT_SECRET_KEY == INSECURE_DEV_JWT_SECRET
 
 
-def test_production_rejects_omitted_jwt_secret():
+def test_production_rejects_omitted_jwt_secret(monkeypatch):
     """Production environment must refuse to boot if JWT_SECRET_KEY is not overridden."""
+    monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
     with pytest.raises(ValidationError) as exc_info:
         Settings(_env_file=None, ENVIRONMENT="production")
 
@@ -78,8 +80,11 @@ def test_settings_repr_does_not_leak_secrets():
     assert "sensitive_db_password" not in repr_str
 
 
-def test_database_config_local_development_defaults():
-    """Local development must use standard MySQL URL with empty connect_args (no SSL overhead)."""
+def test_database_config_local_development_defaults(monkeypatch):
+    """Local development must use standard MySQL URL with empty connect_args when SSL is not configured."""
+    monkeypatch.delenv("DB_SSL_MODE", raising=False)
+    monkeypatch.delenv("DB_SSL_CA", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
     s = Settings(_env_file=None, ENVIRONMENT="development")
     db_url = s.get_database_url()
     connect_args = s.get_database_connect_args()
@@ -87,6 +92,31 @@ def test_database_config_local_development_defaults():
     assert db_url.startswith("mysql+pymysql://")
     assert "charset=utf8mb4" in db_url
     assert connect_args == {}
+
+
+def test_database_config_local_development_empty_or_disabled_ssl():
+    """Local development with empty or explicitly disabled SSL modes must return empty connect_args."""
+    for disabled_mode in ("", "   ", "DISABLED", "NONE", "OFF", "FALSE", "0", "preferred"):
+        s = Settings(_env_file=None, ENVIRONMENT="development", DB_SSL_MODE=disabled_mode)
+        assert s.get_database_connect_args() == {}
+
+
+def test_database_config_hosted_tls_discrete_settings():
+    """Hosted database with discrete parameters and DB_SSL_MODE=REQUIRED must configure TLS."""
+    s = Settings(
+        _env_file=None,
+        ENVIRONMENT="production",
+        JWT_SECRET_KEY="strong_production_secret_key_for_testing_123456",
+        DB_HOST="mysql-service.aivencloud.com",
+        DB_PORT=17890,
+        DB_USER="avnadmin",
+        DB_NAME="defaultdb",
+        DB_SSL_MODE="REQUIRED",
+        DB_SSL_CHECK_HOSTNAME=True,
+    )
+    connect_args = s.get_database_connect_args()
+    assert "ssl" in connect_args
+    assert connect_args["ssl"] == {"check_hostname": True}
 
 
 def test_database_config_discrete_ssl_ca():

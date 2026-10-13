@@ -179,9 +179,14 @@ function Landing() {
                   </div>
                 </li>
               </ul>
-              <Link to="/profile" className="panel-btn outline">
-                Staff & Admin Sign In →
-              </Link>
+              <div className="provider-action-group">
+                <Link to="/hospital-register" className="panel-btn register-hospital-btn">
+                  Register Your Hospital →
+                </Link>
+                <Link to="/profile" className="panel-btn outline">
+                  Staff & Admin Sign In
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -200,6 +205,9 @@ function Landing() {
             <div className="cta-buttons">
               <Link to="/hospitals" className="btn-cta-primary">
                 Book a Patient Token
+              </Link>
+              <Link to="/hospital-register" className="btn-cta-secondary highlight-register">
+                Register Your Hospital
               </Link>
               <Link to="/profile" className="btn-cta-secondary">
                 Healthcare Staff Sign In

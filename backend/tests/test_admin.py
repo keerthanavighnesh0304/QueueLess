@@ -360,3 +360,200 @@ def test_bookings_disabled_for_non_approved_states(client: TestClient, admin_tok
     r2 = client.post(f"/api/admin/hospitals/{p2['id']}/reject", headers={"Authorization": f"Bearer {admin_token}"}).json()
     assert r2["hospital"]["status"] == "REJECTED"
     assert r2["hospital"]["is_accepting_bookings"] is False
+
+
+def test_register_hospital_with_contact_info_and_coordinate_defaults(client: TestClient, admin_token: str):
+    """
+    Verifies that public hospital onboarding accepts contact person, email, and phone,
+    gracefully defaults GPS coordinates, stores status as PENDING_APPROVAL with bookings disabled,
+    and is visible to the platform admin for approval.
+    """
+    payload = {
+        "name": "Lotus Specialty Hospital",
+        "registration_number": "LOTUS-CBE-2026-001",
+        "address": "45 Trichy Road, Singanallur",
+        "city": "Coimbatore",
+        "contact_person_name": "Dr. Ananya Sundaram",
+        "contact_email": "admin@lotushospital.org",
+        "contact_phone": "+91 98400 98765",
+        "avg_consultation_time_mins": 20,
+    }
+
+    # 1. Public submission (no auth required)
+    resp = client.post("/api/hospitals/register", json=payload)
+    assert resp.status_code == 201
+    created = resp.json()
+    assert created["name"] == "Lotus Specialty Hospital"
+    assert created["registration_number"] == "LOTUS-CBE-2026-001"
+    assert created["status"] == "PENDING_APPROVAL"
+    assert created["is_accepting_bookings"] is False
+    assert "Dr. Ananya Sundaram" in created["address"]
+    assert "admin@lotushospital.org" in created["address"]
+    assert "+91 98400 98765" in created["address"]
+    # Coordinates were defaulted cleanly
+    assert created["latitude"] > 0
+    assert created["longitude"] > 0
+
+    # 2. Visible in admin pending approvals
+    pending_resp = client.get("/api/admin/hospitals/pending", headers={"Authorization": f"Bearer {admin_token}"})
+    assert pending_resp.status_code == 200
+    pending_list = pending_resp.json()
+    matched = [h for h in pending_list if h["id"] == created["id"]]
+    assert len(matched) == 1
+    assert matched[0]["status"] == "PENDING_APPROVAL"
+
+    # 3. Admin can approve it
+    approve_resp = client.post(f"/api/admin/hospitals/{created['id']}/approve", headers={"Authorization": f"Bearer {admin_token}"})
+    assert approve_resp.status_code == 200
+    approved_data = approve_resp.json()["hospital"]
+    assert approved_data["status"] == "APPROVED"
+    assert approved_data["is_accepting_bookings"] is True
+
+
+# ============================================================================
+# Admin Staff Provisioning Tests
+# ============================================================================
+
+def test_provision_staff_account_success(client: TestClient, admin_token: str):
+    """Admin provisions the first staff account for an approved hospital."""
+    # 1. Register & approve a hospital
+    reg = client.post("/api/hospitals/register", json={
+        "name": "Emerald Health Centre",
+        "registration_number": "EMR-001",
+        "address": "45 Trichy Road",
+        "city": "Coimbatore",
+    })
+    hosp_id = reg.json()["id"]
+    client.post(f"/api/admin/hospitals/{hosp_id}/approve", headers={"Authorization": f"Bearer {admin_token}"})
+
+    # 2. Provision staff account
+    prov_resp = client.post(
+        f"/api/admin/hospitals/{hosp_id}/provision-staff",
+        json={
+            "email": "manager.emerald@example.org",
+            "full_name": "Dr. Emerald Manager",
+            "phone": "+91 98400 11223",
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert prov_resp.status_code == 201
+    data = prov_resp.json()
+    assert "provisioned successfully" in data["message"].lower()
+    assert data["user"]["role"] == "STAFF"
+    assert data["user"]["hospital_id"] == hosp_id
+    assert data["user"]["email"] == "manager.emerald@example.org"
+    # Secure temporary password returned once
+    assert len(data["temporary_password"]) >= 12
+
+
+def test_provision_staff_account_authentication(client: TestClient, admin_token: str):
+    """A provisioned staff member can immediately authenticate and receive a JWT token."""
+    reg = client.post("/api/hospitals/register", json={
+        "name": "Sapphire Clinic",
+        "registration_number": "SAP-001",
+        "address": "77 Race Course Road",
+        "city": "Coimbatore",
+    })
+    hosp_id = reg.json()["id"]
+    client.post(f"/api/admin/hospitals/{hosp_id}/approve", headers={"Authorization": f"Bearer {admin_token}"})
+
+    prov_resp = client.post(
+        f"/api/admin/hospitals/{hosp_id}/provision-staff",
+        json={
+            "email": "manager.sapphire@example.org",
+            "full_name": "Sapphire Manager",
+            "initial_password": "SecurePassword123!",
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert prov_resp.status_code == 201
+
+    # Login with the provisioned credentials
+    login_resp = client.post("/api/auth/login", json={
+        "email": "manager.sapphire@example.org",
+        "password": "SecurePassword123!",
+    })
+    assert login_resp.status_code == 200
+    token_data = login_resp.json()
+    assert token_data["user"]["role"] == "STAFF"
+    assert token_data["user"]["hospital_id"] == hosp_id
+    assert "access_token" in token_data
+
+
+def test_provision_staff_unapproved_hospital_rejected(client: TestClient, admin_token: str):
+    """Provisioning staff for an unapproved hospital is rejected with 400 Bad Request."""
+    reg = client.post("/api/hospitals/register", json={
+        "name": "Unapproved Care",
+        "registration_number": "UNAPP-001",
+        "address": "12 East St",
+        "city": "Coimbatore",
+    })
+    hosp_id = reg.json()["id"]
+
+    resp = client.post(
+        f"/api/admin/hospitals/{hosp_id}/provision-staff",
+        json={
+            "email": "staff.unapp@example.org",
+            "full_name": "Test Manager",
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert resp.status_code == 400
+    assert "approved" in resp.json()["detail"].lower()
+
+
+def test_provision_staff_duplicate_email_conflict(client: TestClient, admin_token: str):
+    """Attempting to provision an account with an existing email returns 409 Conflict."""
+    reg = client.post("/api/hospitals/register", json={
+        "name": "Diamond Hospital",
+        "registration_number": "DIA-001",
+        "address": "88 West St",
+        "city": "Coimbatore",
+    })
+    hosp_id = reg.json()["id"]
+    client.post(f"/api/admin/hospitals/{hosp_id}/approve", headers={"Authorization": f"Bearer {admin_token}"})
+
+    # First provisioning
+    client.post(
+        f"/api/admin/hospitals/{hosp_id}/provision-staff",
+        json={
+            "email": "manager.diamond@example.org",
+            "full_name": "Diamond Manager",
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    # Duplicate provisioning with same email
+    dup_resp = client.post(
+        f"/api/admin/hospitals/{hosp_id}/provision-staff",
+        json={
+            "email": "manager.diamond@example.org",
+            "full_name": "Duplicate Manager",
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert dup_resp.status_code == 409
+    assert "already exists" in dup_resp.json()["detail"].lower()
+
+
+def test_provision_staff_forbidden_for_non_admin(
+    client: TestClient,
+    staff_token: str,
+    patient_token: str,
+):
+    """Non-admin users receive 403 Forbidden when attempting staff provisioning."""
+    # Staff attempt
+    resp_staff = client.post(
+        "/api/admin/hospitals/1/provision-staff",
+        json={"email": "attempt@example.org", "full_name": "Attempt"},
+        headers={"Authorization": f"Bearer {staff_token}"},
+    )
+    assert resp_staff.status_code == 403
+
+    # Patient attempt
+    resp_patient = client.post(
+        "/api/admin/hospitals/1/provision-staff",
+        json={"email": "attempt@example.org", "full_name": "Attempt"},
+        headers={"Authorization": f"Bearer {patient_token}"},
+    )
+    assert resp_patient.status_code == 403

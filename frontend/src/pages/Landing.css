@@ -513,7 +513,43 @@
   transform: translateY(-1px);
 }
 
+.provider-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.register-hospital-btn {
+  background-color: var(--color-burnt-orange);
+  box-shadow: 0 2px 10px rgba(194, 91, 40, 0.25);
+}
+
+.register-hospital-btn:hover {
+  background-color: var(--color-burnt-orange-hover, #aa4b1d);
+}
+
+.btn-cta-secondary.highlight-register {
+  border-color: var(--color-burnt-orange);
+  color: var(--color-burnt-orange) !important;
+}
+
+[data-theme="dark"] .btn-cta-secondary.highlight-register {
+  border-color: var(--color-gold);
+  color: var(--color-gold) !important;
+}
+
+.btn-cta-secondary.highlight-register:hover {
+  background-color: var(--color-accent-subtle);
+}
+
 /* Responsive adjustments */
+@media (min-width: 600px) {
+  .provider-action-group {
+    flex-direction: row;
+    gap: 12px;
+  }
+}
+
 @media (max-width: 900px) {
   .hero-headline {
     font-size: 34px;

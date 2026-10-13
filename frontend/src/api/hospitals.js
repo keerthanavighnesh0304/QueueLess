@@ -91,3 +91,25 @@ export async function fetchHospitalSessionsApi(hospitalId, { sessionDate, doctor
 export async function fetchPublicQueueStatusApi(sessionId, { signal } = {}) {
   return apiClient.get(`/sessions/${sessionId}/queue/status`, { skipAuth: true, signal });
 }
+
+/**
+ * Submits a new healthcare facility onboarding application for administrative review.
+ * Explicitly passes { skipAuth: true } so any public representative can register
+ * their facility without requiring prior authentication.
+ *
+ * @param {object} hospitalData - Form payload with facility and contact details
+ * @param {string} hospitalData.name - Hospital facility name
+ * @param {string} hospitalData.registration_number - State license or registration identifier
+ * @param {string} hospitalData.address - Physical street address
+ * @param {string} [hospitalData.city] - City name (defaults to Coimbatore)
+ * @param {string} [hospitalData.contact_person_name] - Contact person full name
+ * @param {string} [hospitalData.contact_email] - Administrative contact email
+ * @param {string} [hospitalData.contact_phone] - Contact telephone number
+ * @param {number} [hospitalData.avg_consultation_time_mins] - Default slot duration in minutes
+ * @param {object} [options]
+ * @param {AbortSignal} [options.signal]
+ * @returns {Promise<object>} HospitalOut object (status: PENDING_APPROVAL)
+ */
+export async function registerHospitalApi(hospitalData, { signal } = {}) {
+  return apiClient.post('/hospitals/register', hospitalData, { skipAuth: true, signal });
+}

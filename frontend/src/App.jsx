@@ -9,6 +9,7 @@ import MyQueue from './pages/MyQueue'
 import Profile from './pages/Profile'
 import StaffDashboard from './pages/StaffDashboard'
 import AdminApprovals from './pages/AdminApprovals'
+import HospitalRegister from './pages/HospitalRegister'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 
@@ -129,6 +130,11 @@ function AppContent() {
             path="/profile"
             element={<Profile />}
           />
+
+          <Route
+            path="/hospital-register"
+            element={<HospitalRegister />}
+          />
         </Routes>
       </div>
 
@@ -142,6 +148,7 @@ function AppContent() {
           <div className="footer-links">
             <Link to="/">Home</Link>
             <Link to="/hospitals">Find Hospitals</Link>
+            <Link to="/hospital-register">Register Your Hospital</Link>
             <Link to="/my-queue">My Queue</Link>
             <Link to="/staff">Staff Portal</Link>
             <Link to="/profile">Account</Link>
