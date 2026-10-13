@@ -41,6 +41,18 @@ export async function fetchHospitalDetailsApi(hospitalId, { signal } = {}) {
 }
 
 /**
+ * Lists clinical departments belonging to an approved hospital.
+ *
+ * @param {number|string} hospitalId
+ * @param {object} [options]
+ * @param {AbortSignal} [options.signal]
+ * @returns {Promise<Array<object>>} List of DepartmentOut objects
+ */
+export async function fetchHospitalDepartmentsApi(hospitalId, { signal } = {}) {
+  return apiClient.get(`/hospitals/${hospitalId}/departments`, { skipAuth: true, signal });
+}
+
+/**
  * Lists active practicing doctors for an approved hospital.
  *
  * @param {number|string} hospitalId

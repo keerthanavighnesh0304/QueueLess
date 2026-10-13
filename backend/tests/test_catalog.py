@@ -925,3 +925,196 @@ def test_create_doctor_invalid_department_hospital_mismatch(client: TestClient, 
     )
     assert resp.status_code == 400
     assert "does not belong to this hospital" in resp.json()["detail"].lower()
+
+
+def test_create_department_invalid_name_too_short(client: TestClient, staff1_token: str):
+    """Department name shorter than minimum length returns 422 Unprocessable Entity."""
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "A"},
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 422
+
+
+def test_create_department_unauthenticated(client: TestClient):
+    """Creating a department without authentication returns 401 Unauthorized."""
+    resp = client.post(
+        "/api/hospitals/1/departments",
+        json={"name": "Neurology 2"},
+    )
+    assert resp.status_code == 401
+
+
+def test_create_doctor_invalid_name_too_short(client: TestClient, staff1_token: str):
+    """Doctor full name shorter than minimum length returns 422 Unprocessable Entity."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 1,
+            "full_name": "D",
+            "specialization": "Cardiology",
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 422
+
+
+def test_create_doctor_nonexistent_department(client: TestClient, staff1_token: str):
+    """Specifying a non-existent department returns 404 Not Found."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 9999,
+            "full_name": "Dr. Unlinked",
+            "specialization": "Cardiology",
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 404
+    assert "department not found" in resp.json()["detail"].lower()
+
+
+def test_create_doctor_patient_forbidden(client: TestClient, patient_token: str):
+    """Patients receive 403 Forbidden when attempting to register a doctor."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 1,
+            "full_name": "Dr. Patient Created",
+            "specialization": "General",
+        },
+        headers={"Authorization": f"Bearer {patient_token}"},
+    )
+    assert resp.status_code == 403
+
+
+def test_create_doctor_unauthenticated(client: TestClient):
+    """Registering a doctor without authentication returns 401 Unauthorized."""
+    resp = client.post(
+        "/api/hospitals/1/doctors",
+        json={
+            "department_id": 1,
+            "full_name": "Dr. Anon",
+            "specialization": "General",
+        },
+    )
+    assert resp.status_code == 401
+
+
+# ============================================================================
+# Consultation Session Creation & Scheduling Tests
+# ============================================================================
+
+def test_create_session_success(client: TestClient, staff1_token: str):
+    """Staff member of Hospital 1 successfully schedules a new consultation session."""
+    target_date = str(date.today() + timedelta(days=2))
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 1,
+            "session_name": "Evening Cardiology Clinic",
+            "session_date": target_date,
+            "start_time": "16:00:00",
+            "end_time": "19:00:00",
+            "max_capacity": 25,
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["session_name"] == "Evening Cardiology Clinic"
+    assert data["hospital_id"] == 1
+    assert data["doctor_id"] == 1
+    assert data["status"] == "SCHEDULED"
+    assert data["max_capacity"] == 25
+
+
+def test_create_session_cross_hospital_forbidden(client: TestClient, staff2_token: str):
+    """Staff of Hospital 2 cannot schedule a session in Hospital 1."""
+    target_date = str(date.today() + timedelta(days=2))
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 1,
+            "session_name": "Unauthorized Clinic",
+            "session_date": target_date,
+            "start_time": "14:00:00",
+            "end_time": "17:00:00",
+            "max_capacity": 20,
+        },
+        headers={"Authorization": f"Bearer {staff2_token}"},
+    )
+    assert resp.status_code == 403
+    assert "access denied" in resp.json()["detail"].lower()
+
+
+def test_create_session_patient_forbidden(client: TestClient, patient_token: str):
+    """Patients receive 403 Forbidden when attempting to schedule a consultation session."""
+    target_date = str(date.today() + timedelta(days=2))
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 1,
+            "session_name": "Patient Scheduled Clinic",
+            "session_date": target_date,
+            "start_time": "14:00:00",
+            "end_time": "17:00:00",
+            "max_capacity": 20,
+        },
+        headers={"Authorization": f"Bearer {patient_token}"},
+    )
+    assert resp.status_code == 403
+
+
+def test_create_session_unauthenticated(client: TestClient):
+    """Scheduling a session without authentication returns 401 Unauthorized."""
+    target_date = str(date.today() + timedelta(days=2))
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 1,
+            "session_name": "Anonymous Clinic",
+            "session_date": target_date,
+        },
+    )
+    assert resp.status_code == 401
+
+
+def test_create_session_doctor_hospital_mismatch(client: TestClient, staff1_token: str):
+    """Scheduling a session in Hospital 1 for a doctor belonging to Hospital 2 returns 404 Not Found."""
+    target_date = str(date.today() + timedelta(days=2))
+    # Doctor 4 belongs to Hospital 2
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 4,
+            "session_name": "Cross Hospital Doctor Session",
+            "session_date": target_date,
+            "start_time": "14:00:00",
+            "end_time": "17:00:00",
+            "max_capacity": 20,
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 404
+    assert "doctor not found in this hospital" in resp.json()["detail"].lower()
+
+
+def test_create_session_invalid_times_rejected(client: TestClient, staff1_token: str):
+    """Scheduling a session where start_time >= end_time returns 400 Bad Request."""
+    target_date = str(date.today() + timedelta(days=2))
+    resp = client.post(
+        "/api/hospitals/1/sessions",
+        json={
+            "doctor_id": 1,
+            "session_name": "Inverted Time Session",
+            "session_date": target_date,
+            "start_time": "17:00:00",
+            "end_time": "14:00:00",
+            "max_capacity": 20,
+        },
+        headers={"Authorization": f"Bearer {staff1_token}"},
+    )
+    assert resp.status_code == 400
+    assert "earlier than end_time" in resp.json()["detail"]

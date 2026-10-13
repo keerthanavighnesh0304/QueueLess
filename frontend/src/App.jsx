@@ -8,6 +8,8 @@ import QueueConfirmation from './pages/QueueConfirmation'
 import MyQueue from './pages/MyQueue'
 import Profile from './pages/Profile'
 import StaffDashboard from './pages/StaffDashboard'
+import StaffDepartments from './pages/StaffDepartments'
+import StaffDoctors from './pages/StaffDoctors'
 import AdminApprovals from './pages/AdminApprovals'
 import HospitalRegister from './pages/HospitalRegister'
 import { AuthProvider } from './context/AuthContext'
@@ -119,6 +121,26 @@ function AppContent() {
           <Route
             path="/staff"
             element={<StaffDashboard />}
+          />
+
+          <Route
+            path="/staff/departments"
+            element={<StaffDepartments />}
+          />
+
+          <Route
+            path="/departments"
+            element={<StaffDepartments />}
+          />
+
+          <Route
+            path="/staff/doctors"
+            element={<StaffDoctors />}
+          />
+
+          <Route
+            path="/doctors"
+            element={<StaffDoctors />}
           />
 
           <Route

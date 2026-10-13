@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import {
   fetchHospitalSessionsApi,
@@ -20,9 +20,10 @@ import './StaffDashboard.css'
 
 function StaffDashboard() {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
+  const [searchParams] = useSearchParams()
 
-  // Authorized hospital ID
-  const hospitalId = user?.hospital_id || 1
+  // Authorized hospital ID: strictly bound to staff user's assigned hospital
+  const hospitalId = user?.hospital_id || (user?.role === 'ADMIN' ? 1 : null)
 
   // Sessions and Doctors State
   const [sessions, setSessions] = useState([])
@@ -46,8 +47,8 @@ function StaffDashboard() {
   const [isSubmittingWalkIn, setIsSubmittingWalkIn] = useState(false)
 
   // Schedule new session state
-  const [showNewSessionModal, setShowNewSessionModal] = useState(false)
-  const [newDoctorId, setNewDoctorId] = useState('')
+  const [showNewSessionModal, setShowNewSessionModal] = useState(() => searchParams.get('schedule') === 'true')
+  const [newDoctorId, setNewDoctorId] = useState(() => searchParams.get('doctor_id') || '')
   const [newSessionName, setNewSessionName] = useState('')
   const [newSessionDate, setNewSessionDate] = useState(() => new Date().toLocaleDateString('en-CA'))
   const [newStartTime, setNewStartTime] = useState('09:00:00')
@@ -61,7 +62,7 @@ function StaffDashboard() {
   const [metaReloadKey, setMetaReloadKey] = useState(0)
 
   useEffect(() => {
-    if (!isAuthenticated || (user?.role !== 'STAFF' && user?.role !== 'ADMIN')) {
+    if (!isAuthenticated || (user?.role !== 'STAFF' && user?.role !== 'ADMIN') || !hospitalId) {
       return
     }
 
@@ -324,8 +325,29 @@ function StaffDashboard() {
 
   async function handleCreateSessionSubmit(e) {
     e.preventDefault()
-    if (!newDoctorId || !newSessionName.trim()) {
-      setNewSessionError('Please select a doctor and provide a session name.')
+    if (!newDoctorId) {
+      setNewSessionError('Please select a practicing doctor.')
+      return
+    }
+    if (!newSessionName.trim()) {
+      setNewSessionError('Session name is required.')
+      return
+    }
+
+    const todayStr = new Date().toLocaleDateString('en-CA')
+    if (newSessionDate < todayStr) {
+      setNewSessionError('Session date cannot be in the past.')
+      return
+    }
+
+    if (newStartTime && newEndTime && newStartTime >= newEndTime) {
+      setNewSessionError('Session start time must be strictly earlier than end time.')
+      return
+    }
+
+    const cap = Number(newCapacity)
+    if (!cap || cap < 1 || cap > 200) {
+      setNewSessionError('Max capacity must be between 1 and 200 patients.')
       return
     }
 
@@ -339,7 +361,7 @@ function StaffDashboard() {
         session_date: newSessionDate,
         start_time: newStartTime,
         end_time: newEndTime,
-        max_capacity: Number(newCapacity) || 40,
+        max_capacity: cap,
       })
 
       // If created in SCHEDULED, automatically activate it so queue is immediately operational
@@ -394,6 +416,22 @@ function StaffDashboard() {
     )
   }
 
+  if (user?.role === 'STAFF' && !user?.hospital_id) {
+    return (
+      <main className="staff-page">
+        <div className="staff-container">
+          <div className="staff-card access-denied">
+            <div className="denied-icon">⚠️</div>
+            <h2>No Hospital Assigned</h2>
+            <p>
+              This staff account is not assigned to a registered healthcare facility. Please contact your platform administrator.
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   const selectedSession = sessions.find((s) => s.id === selectedSessionId)
   const isRoomOccupied = Boolean(queueSummary?.currently_calling || queueSummary?.currently_serving)
 
@@ -416,6 +454,17 @@ function StaffDashboard() {
           </div>
 
           <div className="staff-header-actions">
+            <nav className="staff-portal-tabs" aria-label="Hospital Management Tabs">
+              <NavLink to="/staff" end className={({ isActive }) => `tab-btn ${isActive ? 'active' : ''}`}>
+                Queue Operations
+              </NavLink>
+              <NavLink to="/staff/departments" className={({ isActive }) => `tab-btn ${isActive ? 'active' : ''}`}>
+                Departments
+              </NavLink>
+              <NavLink to="/staff/doctors" className={({ isActive }) => `tab-btn ${isActive ? 'active' : ''}`}>
+                Doctors ({doctors.length})
+              </NavLink>
+            </nav>
             <button
               type="button"
               className="new-session-btn"
@@ -545,16 +594,31 @@ function StaffDashboard() {
           </div>
         ) : !selectedSession ? (
           <div className="staff-card empty-sessions-card">
-            <div className="empty-bubble-icon">🩺</div>
-            <h3>No Sessions Scheduled</h3>
-            <p>There are no consultation sessions registered. Click "+ Schedule Session" above to set up an outpatient clinic.</p>
-            <button
-              type="button"
-              className="new-session-btn"
-              onClick={() => setShowNewSessionModal(true)}
-            >
-              + Schedule First Session
-            </button>
+            <div className="empty-bubble-icon">{doctors.length === 0 ? '🏥' : '🩺'}</div>
+            <h3>{doctors.length === 0 ? 'Hospital Clinical Setup Required' : 'No Sessions Scheduled'}</h3>
+            <p>
+              {doctors.length === 0
+                ? 'Your hospital account is active! Complete these quick setup steps to register departments and doctors before scheduling outpatient clinics.'
+                : 'There are no consultation sessions currently registered. Click below to schedule a session for a doctor.'}
+            </p>
+            {doctors.length === 0 ? (
+              <div className="onboarding-step-actions">
+                <Link to="/staff/departments" className="onboard-step-btn">
+                  1. Manage Departments →
+                </Link>
+                <Link to="/staff/doctors" className="onboard-step-btn">
+                  2. Manage Doctors →
+                </Link>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="new-session-btn"
+                onClick={() => setShowNewSessionModal(true)}
+              >
+                + Schedule First Session
+              </button>
+            )}
           </div>
         ) : (
           <div className="queue-dashboard-grid">
@@ -955,28 +1019,42 @@ function StaffDashboard() {
               )}
 
               <form onSubmit={handleCreateSessionSubmit} className="walkin-form">
-                <div className="form-group">
-                  <label htmlFor="new-doc-select">Doctor *</label>
-                  <select
-                    id="new-doc-select"
-                    required
-                    value={newDoctorId}
-                    onChange={(e) => {
-                      setNewDoctorId(e.target.value)
-                      const d = doctors.find((doc) => doc.id === Number(e.target.value))
-                      if (d) {
-                        setNewSessionName(`OPD Clinic - ${d.full_name}`)
-                      }
-                    }}
-                  >
-                    <option value="">-- Choose Practicing Doctor --</option>
-                    {doctors.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.full_name} ({d.specialization}) [Prefix: {d.ticket_prefix}]
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {doctors.length === 0 ? (
+                  <div className="modal-no-docs-warning">
+                    <span className="warning-badge">⚠️ No Practicing Doctors Registered</span>
+                    <p>There are no practicing physicians registered for this hospital. Please register at least one doctor before scheduling consultation sessions.</p>
+                    <Link
+                      to="/staff/doctors"
+                      className="goto-docs-btn"
+                      onClick={() => setShowNewSessionModal(false)}
+                    >
+                      👉 Register Doctor in Manage Doctors →
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label htmlFor="new-doc-select">Doctor *</label>
+                    <select
+                      id="new-doc-select"
+                      required
+                      value={newDoctorId}
+                      onChange={(e) => {
+                        setNewDoctorId(e.target.value)
+                        const d = doctors.find((doc) => doc.id === Number(e.target.value))
+                        if (d) {
+                          setNewSessionName(`OPD Clinic - ${d.full_name}`)
+                        }
+                      }}
+                    >
+                      <option value="">-- Choose Practicing Doctor --</option>
+                      {doctors.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.full_name} ({d.specialization}) [Prefix: {d.ticket_prefix}]
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label htmlFor="new-sess-name">Session Name *</label>
@@ -1050,7 +1128,7 @@ function StaffDashboard() {
                   <button
                     type="submit"
                     className="submit-btn"
-                    disabled={isProcessingAction}
+                    disabled={isProcessingAction || doctors.length === 0}
                   >
                     {isProcessingAction ? 'Creating...' : 'Create & Activate Session'}
                   </button>

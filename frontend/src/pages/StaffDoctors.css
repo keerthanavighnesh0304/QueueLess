@@ -1,0 +1,220 @@
+/* =========================================================================
+   QueueLess — Staff Doctor Management Styles
+   Preserves the Warm Neutral & Amber Design System:
+   - Warm Ivory Surfaces (#FAF7F2 / #FFFBEB)
+   - Amber (#D97706) & Burnt Orange (#92400E) Accents
+   ========================================================================= */
+
+@import './StaffDepartments.css';
+
+/* Form 2-Column Row */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Empty Department Warning Banner in Form */
+.empty-dep-warning {
+  padding: 24px;
+  background: var(--bg-surface-cream);
+  border: 1px dashed var(--color-accent-border);
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.warning-icon {
+  font-size: 36px;
+}
+
+.empty-dep-warning h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-burnt-orange);
+}
+
+.empty-dep-warning p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* List Controls */
+.list-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dept-filter-select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dept-filter-select:focus {
+  outline: none;
+  border-color: var(--color-amber);
+}
+
+/* Doctor Cards Grid */
+.doctor-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.doctor-item-card {
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.doctor-item-card:hover {
+  border-color: var(--color-accent-border);
+  transform: translateY(-2px);
+}
+
+.doc-item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.doc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-burnt-orange) 0%, var(--color-amber) 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(146, 64, 14, 0.2);
+}
+
+.doc-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.doc-info-block h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.doc-qualification {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.doc-specialization {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand);
+}
+
+.doc-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge-dept {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface-cream);
+  border: 1px solid var(--color-accent-border);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-burnt-orange);
+}
+
+.badge-prefix {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.badge-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.doc-card-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.schedule-for-doc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-brand);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.schedule-for-doc-btn:hover {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #ffffff;
+}

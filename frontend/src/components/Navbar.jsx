@@ -41,26 +41,51 @@ function Navbar() {
         {/* Links and Actions */}
         <div className={`navbar-menu ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <div className="navbar-links">
-            <NavLink to="/" end onClick={closeMobile}>
-              Home
-            </NavLink>
-            <NavLink to="/hospitals" onClick={closeMobile}>
-              Find Hospitals
-            </NavLink>
-            <NavLink to="/my-queue" onClick={closeMobile}>
-              My Queue
-            </NavLink>
-
-            {isAuthenticated && (user?.role === 'STAFF' || user?.role === 'ADMIN') && (
-              <NavLink to="/staff" onClick={closeMobile} className="nav-role-link">
-                Staff Queue
-              </NavLink>
-            )}
-
-            {isAuthenticated && user?.role === 'ADMIN' && (
-              <NavLink to="/admin" onClick={closeMobile} className="nav-role-link">
-                Approvals
-              </NavLink>
+            {isAuthenticated && user?.role === 'STAFF' ? (
+              <>
+                <NavLink to="/staff" end onClick={closeMobile} className="nav-role-link">
+                  Staff Queue
+                </NavLink>
+                <NavLink to="/staff/departments" onClick={closeMobile} className="nav-role-link">
+                  Manage Departments
+                </NavLink>
+                <NavLink to="/staff/doctors" onClick={closeMobile} className="nav-role-link">
+                  Manage Doctors
+                </NavLink>
+                <NavLink to="/staff?schedule=true" onClick={closeMobile} className="nav-role-link">
+                  Schedule Sessions
+                </NavLink>
+              </>
+            ) : isAuthenticated && user?.role === 'ADMIN' ? (
+              <>
+                <NavLink to="/admin" onClick={closeMobile} className="nav-role-link">
+                  Approvals
+                </NavLink>
+                <NavLink to="/staff" onClick={closeMobile} className="nav-role-link">
+                  Staff Queue
+                </NavLink>
+                <NavLink to="/staff/departments" onClick={closeMobile} className="nav-role-link">
+                  Manage Departments
+                </NavLink>
+                <NavLink to="/staff/doctors" onClick={closeMobile} className="nav-role-link">
+                  Manage Doctors
+                </NavLink>
+                <NavLink to="/hospitals" onClick={closeMobile}>
+                  Find Hospitals
+                </NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink to="/" end onClick={closeMobile}>
+                  Home
+                </NavLink>
+                <NavLink to="/hospitals" onClick={closeMobile}>
+                  Find Hospitals
+                </NavLink>
+                <NavLink to="/my-queue" onClick={closeMobile}>
+                  My Queue
+                </NavLink>
+              </>
             )}
           </div>
 
