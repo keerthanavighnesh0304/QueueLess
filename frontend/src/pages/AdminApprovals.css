@@ -1,154 +1,587 @@
+/* =========================================================================
+   QueueLess — Admin Approvals UI
+   Preserves the Warm Neutral & Amber Design System:
+   - Warm Ivory & Cream Surfaces (#FAF7F2 / #FFFBEB)
+   - Amber (#D97706) & Burnt Orange (#92400E) Primary Accents
+   - Deep Espresso & Warm Charcoal in Dark Theme
+   ========================================================================= */
+
 .admin-page {
-  padding: 40px 6% 60px;
+  padding: 32px 5% 64px;
   min-height: calc(100vh - 80px);
-  display: flex;
-  justify-content: center;
   background: var(--bg-app);
 }
 
 .admin-container {
   width: 100%;
-  max-width: 960px;
+  max-width: 1080px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
+/* =========================================================================
+   1. Clean Responsive Header
+   ========================================================================= */
 .admin-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 18px;
+  padding-bottom: 4px;
+}
+
+.admin-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .admin-header h1 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 28px;
   font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.admin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-accent-subtle);
+  color: var(--color-burnt-orange);
+  border: 1px solid var(--color-accent-border);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .admin-status-pill {
+  color: var(--color-gold);
+}
+
+.admin-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-amber);
 }
 
 .admin-header .subtext {
   margin: 0;
   font-size: 14px;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
-.admin-card {
-  background: var(--bg-card);
+.refresh-btn {
+  background: var(--bg-surface-elevated);
   border: 1px solid var(--border-primary);
-  border-radius: 18px;
-  padding: 34px;
-  box-shadow: var(--shadow-card);
-  text-align: center;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.pending-list {
+.refresh-btn:hover:not(:disabled) {
+  border-color: var(--color-amber);
+  color: var(--color-burnt-orange);
+  background-color: var(--color-accent-subtle);
+}
+
+[data-theme="dark"] .refresh-btn:hover:not(:disabled) {
+  color: var(--color-gold);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================================
+   2. Alert Notices
+   ========================================================================= */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-sm);
+}
+
+.alert-success {
+  background: var(--status-active-bg);
+  border: 1px solid var(--status-active-border);
+  color: var(--status-active-text);
+}
+
+.alert-error {
+  background: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger-text);
+}
+
+.alert-icon {
+  font-size: 16px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  flex: 1;
+}
+
+.close-alert-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: opacity var(--transition-fast);
+}
+
+.close-alert-btn:hover {
+  opacity: 1;
+}
+
+.retry-btn-small {
+  background: var(--status-danger-text);
+  color: #ffffff;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* =========================================================================
+   3. Summary Strip
+   ========================================================================= */
+.admin-summary-strip {
+  background: var(--bg-surface-cream);
+  border: 1.5px solid var(--color-accent-border);
+  border-radius: 18px;
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-left {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-burnt-orange);
+}
+
+[data-theme="dark"] .summary-label {
+  color: var(--color-gold);
+}
+
+.summary-subtext {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.pending-counter-badge {
+  background: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+  border: 1px solid var(--status-waiting-border);
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   4. Pending Applications Grid & Cards
+   ========================================================================= */
+.pending-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .pending-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 18px;
-  padding: 26px 30px;
+  border: 1.5px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 26px 28px;
   box-shadow: var(--shadow-card);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: 20px;
-  flex-wrap: wrap;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .pending-card:hover {
   border-color: var(--color-amber);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.pending-info h3 {
-  font-size: 18px;
+/* Card Header */
+.pending-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.hospital-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hospital-icon-wrap {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hospital-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hospital-title-wrap h3 {
+  margin: 0;
+  font-size: 20px;
   font-weight: 800;
   color: var(--text-primary);
-  margin: 0 0 4px;
+  letter-spacing: -0.01em;
 }
 
-.pending-meta {
-  font-size: 13px;
+.reg-number-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reg-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin: 0 0 8px;
 }
 
-.pending-badge {
-  display: inline-block;
-  background: var(--status-calling-bg);
-  color: var(--status-calling-text);
-  border: 1px solid var(--status-calling-border);
-  padding: 3px 10px;
+.reg-value-pill {
+  background: var(--color-accent-subtle);
+  color: var(--color-burnt-orange);
+  border: 1px solid var(--color-accent-border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  font-family: monospace;
+}
+
+[data-theme="dark"] .reg-value-pill {
+  color: var(--color-gold);
+}
+
+.status-badge.status-pending {
+  background: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+  border: 1px solid var(--status-waiting-border);
+  padding: 5px 12px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
-.pending-actions {
+/* Metadata Details Grid */
+.pending-details-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  gap: 16px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.detail-item {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.btn-approve {
-  background: var(--color-amber);
+.detail-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.detail-value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.detail-value.mono {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Actions Bar */
+.pending-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.approve-btn {
+  background: var(--color-burnt-orange);
   color: #ffffff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 9px;
-  font-size: 13px;
+  padding: 12px 24px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 0 3px 10px var(--color-accent-glow);
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approve-btn:hover:not(:disabled) {
+  background: var(--color-burnt-orange-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px var(--color-accent-glow);
+}
+
+.approve-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.reject-btn {
+  background: var(--status-danger-bg);
+  border: 1.5px solid var(--status-danger-border);
+  color: var(--status-danger-text);
+  padding: 12px 22px;
+  border-radius: 11px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 2px 6px var(--color-accent-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btn-approve:hover:not(:disabled) {
+.reject-btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.reject-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =========================================================================
+   5. Loading, Access Denied & Empty States
+   ========================================================================= */
+.admin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 44px 30px;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.admin-card.access-denied {
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+.denied-icon {
+  font-size: 36px;
+  margin-bottom: 2px;
+}
+
+.admin-card.access-denied h2 {
+  color: var(--status-danger-text);
+  margin: 0;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.admin-card.access-denied p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.admin-signin-btn {
+  display: inline-block;
+  margin-top: 12px;
+  background: var(--color-amber);
+  color: #ffffff !important;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.admin-signin-btn:hover {
   background: var(--color-amber-hover);
   transform: translateY(-1px);
 }
 
-.btn-reject {
-  background: var(--status-danger-bg);
-  color: var(--status-danger-text);
-  border: 1px solid var(--status-danger-border);
-  padding: 10px 18px;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
+.admin-card.empty-state {
+  padding: 50px 30px;
 }
 
-.btn-reject:hover:not(:disabled) {
-  opacity: 0.85;
+.empty-bubble-icon {
+  font-size: 34px;
+  opacity: 0.8;
+  margin-bottom: 4px;
 }
 
-.empty-pending-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: 18px;
-  padding: 50px 24px;
-  text-align: center;
-  color: var(--text-muted);
-  box-shadow: var(--shadow-sm);
-}
-
-.empty-pending-card h3 {
-  font-size: 18px;
+.admin-card.empty-state h3 {
+  margin: 0;
+  font-size: 20px;
   font-weight: 800;
   color: var(--text-primary);
-  margin: 12px 0 6px;
+}
+
+.admin-card.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+/* =========================================================================
+   6. Responsive Breakpoints
+   ========================================================================= */
+@media (max-width: 900px) {
+  .pending-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-summary-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-page {
+    padding: 20px 4% 48px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pending-card {
+    padding: 20px 18px;
+  }
+
+  .pending-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pending-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .approve-btn,
+  .reject-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

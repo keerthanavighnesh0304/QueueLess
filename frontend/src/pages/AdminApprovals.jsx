@@ -98,9 +98,11 @@ function AdminApprovals() {
   if (isAuthLoading) {
     return (
       <main className="admin-page">
-        <div className="admin-card loading-state">
-          <div className="spinner" />
-          <p>Verifying administrative credentials...</p>
+        <div className="admin-container">
+          <div className="admin-card loading-state">
+            <div className="spinner" />
+            <p>Verifying administrative credentials...</p>
+          </div>
         </div>
       </main>
     )
@@ -109,14 +111,17 @@ function AdminApprovals() {
   if (!isAuthenticated || user?.role !== 'ADMIN') {
     return (
       <main className="admin-page">
-        <div className="admin-card access-denied">
-          <h2>Administrative Access Restricted</h2>
-          <p>
-            You must be signed in as a <strong>Platform Administrator</strong> to review and approve hospital onboarding applications.
-          </p>
-          <Link to="/profile" className="admin-signin-btn">
-            Sign In with Administrator Account
-          </Link>
+        <div className="admin-container">
+          <div className="admin-card access-denied">
+            <div className="denied-icon" aria-hidden="true">🔒</div>
+            <h2>Administrative Access Restricted</h2>
+            <p>
+              You must be signed in as a <strong>Platform Administrator</strong> to review and approve hospital onboarding applications.
+            </p>
+            <Link to="/profile" className="admin-signin-btn">
+              Sign In with Administrator Account
+            </Link>
+          </div>
         </div>
       </main>
     )
@@ -125,11 +130,17 @@ function AdminApprovals() {
   return (
     <main className="admin-page">
       <div className="admin-container">
+        {/* Top Header */}
         <header className="admin-header">
-          <div>
-            <h1>Hospital Onboarding Approvals</h1>
+          <div className="admin-header-info">
+            <div className="admin-title-row">
+              <h1>Hospital Onboarding Approvals</h1>
+              <span className="admin-status-pill">
+                <span className="admin-indicator-dot" /> Platform Admin
+              </span>
+            </div>
             <p className="subtext">
-              Review pending healthcare facility registrations for Coimbatore platform onboarding.
+              Review and verify pending healthcare facility registrations for Coimbatore platform onboarding.
             </p>
           </div>
           <button
@@ -138,25 +149,46 @@ function AdminApprovals() {
             onClick={() => loadPendingHospitals()}
             disabled={isLoading || Boolean(processingId)}
           >
-            {isLoading ? 'Refreshing...' : 'Refresh List'}
+            {isLoading ? 'Refreshing...' : '↻ Refresh List'}
           </button>
         </header>
 
+        {/* Action Success Alert */}
         {actionSuccess && (
           <div className="alert alert-success" role="status">
-            <span>✓ {actionSuccess}</span>
-            <button type="button" className="close-alert-btn" onClick={() => setActionSuccess(null)}>
+            <span className="alert-icon">✓</span>
+            <span className="alert-text">{actionSuccess}</span>
+            <button type="button" className="close-alert-btn" onClick={() => setActionSuccess(null)} aria-label="Dismiss notice">
               ×
             </button>
           </div>
         )}
 
+        {/* Error Alert */}
         {error && (
           <div className="alert alert-error" role="alert">
-            <span><strong>Error:</strong> {error}</span>
+            <span className="alert-icon">⚠️</span>
+            <span className="alert-text"><strong>Error:</strong> {error}</span>
             <button type="button" className="retry-btn-small" onClick={() => loadPendingHospitals()}>
               Retry
             </button>
+          </div>
+        )}
+
+        {/* Pending Queue Count Strip */}
+        {!isLoading && (
+          <div className="admin-summary-strip">
+            <div className="summary-left">
+              <span className="summary-label">Registration Applications</span>
+              <p className="summary-subtext">
+                {hospitals.length === 0
+                  ? 'All healthcare facility registrations have been processed.'
+                  : `Awaiting administrative compliance check and booking activation (${hospitals.length}).`}
+              </p>
+            </div>
+            <span className="pending-counter-badge">
+              {hospitals.length} Pending Review
+            </span>
           </div>
         )}
 
@@ -169,29 +201,55 @@ function AdminApprovals() {
           <div className="pending-grid">
             {hospitals.map((hosp) => (
               <div key={hosp.id} className="pending-card">
-                <div className="pending-card-top">
-                  <div>
-                    <h3>{hosp.name}</h3>
-                    <p className="reg-tag">Reg Number: <strong>{hosp.registration_number}</strong></p>
+                <div className="pending-card-header">
+                  <div className="hospital-identity">
+                    <div className="hospital-icon-wrap" aria-hidden="true">🏥</div>
+                    <div className="hospital-title-wrap">
+                      <h3>{hosp.name}</h3>
+                      <div className="reg-number-row">
+                        <span className="reg-label">REG NO:</span>
+                        <span className="reg-value-pill">{hosp.registration_number}</span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="status-badge pending">Pending Review</span>
+                  <span className="status-badge status-pending">
+                    ● Pending Review
+                  </span>
                 </div>
 
-                <div className="pending-details">
-                  <p><strong>Location:</strong> {hosp.address}, {hosp.city}</p>
-                  <p><strong>Coordinates:</strong> {hosp.latitude.toFixed(6)}, {hosp.longitude.toFixed(6)}</p>
-                  <p><strong>Consultation Duration:</strong> {hosp.avg_consultation_time_mins} minutes avg.</p>
-                  <p><strong>Submitted:</strong> {new Date(hosp.created_at).toLocaleString()}</p>
+                <div className="pending-details-grid">
+                  <div className="detail-item detail-location">
+                    <span className="detail-label">Location / Address</span>
+                    <p className="detail-value">{hosp.address}, {hosp.city}</p>
+                  </div>
+
+                  <div className="detail-item detail-time">
+                    <span className="detail-label">Avg Consultation</span>
+                    <p className="detail-value">{hosp.avg_consultation_time_mins} mins / slot</p>
+                  </div>
+
+                  <div className="detail-item detail-coords">
+                    <span className="detail-label">GPS Coordinates</span>
+                    <p className="detail-value mono">{hosp.latitude.toFixed(6)}, {hosp.longitude.toFixed(6)}</p>
+                  </div>
+
+                  <div className="detail-item detail-date">
+                    <span className="detail-label">Submitted On</span>
+                    <p className="detail-value">
+                      {hosp.created_at ? new Date(hosp.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently'}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="pending-actions">
+                <div className="pending-actions-bar">
                   <button
                     type="button"
                     className="approve-btn"
                     onClick={() => handleApprove(hosp.id, hosp.name)}
                     disabled={Boolean(processingId)}
                   >
-                    {processingId === hosp.id ? 'Processing...' : 'Approve & Enable Bookings'}
+                    <span className="btn-icon">✓</span>
+                    <span>{processingId === hosp.id ? 'Processing Approval...' : 'Approve & Enable Bookings'}</span>
                   </button>
 
                   <button
@@ -200,7 +258,8 @@ function AdminApprovals() {
                     onClick={() => handleReject(hosp.id, hosp.name)}
                     disabled={Boolean(processingId)}
                   >
-                    Reject
+                    <span className="btn-icon">✕</span>
+                    <span>Reject</span>
                   </button>
                 </div>
               </div>
@@ -208,6 +267,7 @@ function AdminApprovals() {
           </div>
         ) : (
           <div className="admin-card empty-state">
+            <div className="empty-bubble-icon" aria-hidden="true">🛡️</div>
             <h3>No Pending Applications</h3>
             <p>All healthcare facilities have been reviewed. There are no pending applications awaiting approval at this time.</p>
           </div>
