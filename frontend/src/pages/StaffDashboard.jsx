@@ -365,9 +365,11 @@ function StaffDashboard() {
   if (isAuthLoading) {
     return (
       <main className="staff-page">
-        <div className="staff-card loading-state">
-          <div className="spinner" />
-          <p>Verifying hospital staff privileges...</p>
+        <div className="staff-container">
+          <div className="staff-card loading-state">
+            <div className="spinner" />
+            <p>Verifying hospital staff privileges...</p>
+          </div>
         </div>
       </main>
     )
@@ -376,14 +378,17 @@ function StaffDashboard() {
   if (!isAuthenticated || (user?.role !== 'STAFF' && user?.role !== 'ADMIN')) {
     return (
       <main className="staff-page">
-        <div className="staff-card access-denied">
-          <h2>Staff Access Restricted</h2>
-          <p>
-            You must be signed in with a <strong>Hospital Staff</strong> or <strong>Administrator</strong> account to access clinical queue operations.
-          </p>
-          <Link to="/profile" className="staff-signin-btn">
-            Sign In with Staff Account
-          </Link>
+        <div className="staff-container">
+          <div className="staff-card access-denied">
+            <div className="denied-icon">🔒</div>
+            <h2>Staff Access Restricted</h2>
+            <p>
+              You must be signed in with a <strong>Hospital Staff</strong> or <strong>Administrator</strong> account to access clinical queue operations.
+            </p>
+            <Link to="/profile" className="staff-signin-btn">
+              Sign In with Staff Account
+            </Link>
+          </div>
         </div>
       </main>
     )
@@ -398,10 +403,15 @@ function StaffDashboard() {
 
         {/* Top Header & Hospital Identity */}
         <header className="staff-header">
-          <div>
-            <h1>Staff Queue Management</h1>
+          <div className="staff-header-info">
+            <div className="staff-title-row">
+              <h1>Staff Queue Management</h1>
+              <span className="live-status-pill">
+                <span className="live-indicator-dot" /> Live Control
+              </span>
+            </div>
             <p className="subtext">
-              {hospitalInfo ? hospitalInfo.name : `Hospital #${hospitalId}`} · Live Outpatient Queue Control
+              {hospitalInfo ? hospitalInfo.name : `Hospital #${hospitalId}`} · Real-Time Outpatient Clinical Desk
             </p>
           </div>
 
@@ -419,7 +429,7 @@ function StaffDashboard() {
               onClick={() => refreshQueue(false)}
               disabled={isLoadingQueue || isProcessingAction}
             >
-              {isLoadingQueue ? 'Refreshing...' : 'Refresh Queue'}
+              {isLoadingQueue ? 'Refreshing...' : '↻ Refresh Queue'}
             </button>
           </div>
         </header>
@@ -427,8 +437,9 @@ function StaffDashboard() {
         {/* Action Notice Alert */}
         {actionNotice && (
           <div className="alert alert-success" role="status">
-            <span>✓ {actionNotice}</span>
-            <button type="button" className="close-alert-btn" onClick={() => setActionNotice(null)}>
+            <span className="alert-icon">✓</span>
+            <span className="alert-text">{actionNotice}</span>
+            <button type="button" className="close-alert-btn" onClick={() => setActionNotice(null)} aria-label="Dismiss notice">
               ×
             </button>
           </div>
@@ -437,82 +448,91 @@ function StaffDashboard() {
         {/* Error Alert */}
         {queueError && (
           <div className="alert alert-error" role="alert">
-            <span><strong>Operation Error:</strong> {queueError}</span>
+            <span className="alert-icon">⚠️</span>
+            <span className="alert-text"><strong>Operation Error:</strong> {queueError}</span>
             <button type="button" className="retry-btn-small" onClick={() => refreshQueue(false)}>
               Retry
             </button>
           </div>
         )}
 
-        {/* Session Selector Bar */}
-        <div className="session-selector-bar">
+        {/* Session Selector Card */}
+        <div className="session-selector-card">
           <div className="selector-group">
-            <label htmlFor="staff-session-select">Select Active OPD Session:</label>
-            <select
-              id="staff-session-select"
-              value={selectedSessionId || ''}
-              onChange={(e) => setSelectedSessionId(Number(e.target.value))}
-            >
-              {sessions.map((sess) => {
-                const doc = doctors.find((d) => d.id === sess.doctor_id)
-                return (
-                  <option key={sess.id} value={sess.id}>
-                    {sess.session_name} ({sess.session_date}) - {doc ? doc.full_name : 'Assigned Doctor'} [{sess.status}]
-                  </option>
-                )
-              })}
-            </select>
+            <label htmlFor="staff-session-select">Select Active OPD Session</label>
+            <div className="select-input-wrapper">
+              <select
+                id="staff-session-select"
+                className="session-select-control"
+                value={selectedSessionId || ''}
+                onChange={(e) => setSelectedSessionId(Number(e.target.value))}
+              >
+                {sessions.map((sess) => {
+                  const doc = doctors.find((d) => d.id === sess.doctor_id)
+                  return (
+                    <option key={sess.id} value={sess.id}>
+                      {sess.session_name} ({sess.session_date}) - {doc ? doc.full_name : 'Assigned Doctor'} [{sess.status}]
+                    </option>
+                  )
+                })}
+              </select>
+            </div>
           </div>
 
           {selectedSession && (
-            <div className="session-status-controls">
-              <span className={`session-badge status-${selectedSession.status.toLowerCase()}`}>
-                {selectedSession.status}
-              </span>
+            <div className="session-status-panel">
+              <div className="session-status-info">
+                <span className="status-label-caption">Session Status</span>
+                <span className={`session-badge status-${selectedSession.status.toLowerCase()}`}>
+                  {selectedSession.status}
+                </span>
+              </div>
 
-              {selectedSession.status === 'SCHEDULED' && (
-                <button
-                  type="button"
-                  className="status-action-btn btn-activate"
-                  onClick={() => handleStatusChange('ACTIVE')}
-                  disabled={isProcessingAction}
-                >
-                  Start OPD (Activate)
-                </button>
-              )}
+              <div className="session-controls-group">
+                {selectedSession.status === 'SCHEDULED' && (
+                  <button
+                    type="button"
+                    className="status-action-btn btn-activate"
+                    onClick={() => handleStatusChange('ACTIVE')}
+                    disabled={isProcessingAction}
+                  >
+                    ▶ Start OPD (Activate)
+                  </button>
+                )}
 
-              {selectedSession.status === 'ACTIVE' && (
-                <button
-                  type="button"
-                  className="status-action-btn btn-pause"
-                  onClick={() => handleStatusChange('PAUSED')}
-                  disabled={isProcessingAction}
-                >
-                  Pause OPD
-                </button>
-              )}
+                {selectedSession.status === 'ACTIVE' && (
+                  <button
+                    type="button"
+                    className="status-action-btn btn-pause"
+                    onClick={() => handleStatusChange('PAUSED')}
+                    disabled={isProcessingAction}
+                  >
+                    ⏸ Pause OPD
+                  </button>
+                )}
 
-              {selectedSession.status === 'PAUSED' && (
-                <button
-                  type="button"
-                  className="status-action-btn btn-activate"
-                  onClick={() => handleStatusChange('ACTIVE')}
-                  disabled={isProcessingAction}
-                >
-                  Resume OPD
-                </button>
-              )}
+                {selectedSession.status === 'PAUSED' && (
+                  <button
+                    type="button"
+                    className="status-action-btn btn-activate"
+                    onClick={() => handleStatusChange('ACTIVE')}
+                    disabled={isProcessingAction}
+                  >
+                    ▶ Resume OPD
+                  </button>
+                )}
 
-              {selectedSession.status !== 'COMPLETED' && (
-                <button
-                  type="button"
-                  className="status-action-btn btn-complete-session"
-                  onClick={() => handleStatusChange('COMPLETED')}
-                  disabled={isProcessingAction}
-                >
-                  Close Session
-                </button>
-              )}
+                {selectedSession.status !== 'COMPLETED' && (
+                  <button
+                    type="button"
+                    className="status-action-btn btn-complete-session"
+                    onClick={() => handleStatusChange('COMPLETED')}
+                    disabled={isProcessingAction}
+                  >
+                    ⏹ Close Session
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -524,30 +544,95 @@ function StaffDashboard() {
             <p>Loading session and doctor metadata...</p>
           </div>
         ) : !selectedSession ? (
-          <div className="staff-card empty-state">
+          <div className="staff-card empty-sessions-card">
+            <div className="empty-bubble-icon">🩺</div>
             <h3>No Sessions Scheduled</h3>
-            <p>There are no consultation sessions registered. Click "+ Schedule Session" above to set up an OPD clinic.</p>
+            <p>There are no consultation sessions registered. Click "+ Schedule Session" above to set up an outpatient clinic.</p>
+            <button
+              type="button"
+              className="new-session-btn"
+              onClick={() => setShowNewSessionModal(true)}
+            >
+              + Schedule First Session
+            </button>
           </div>
         ) : (
           <div className="queue-dashboard-grid">
 
-            {/* Metrics Overview Row */}
-            <div className="metrics-strip">
-              <div className="metric-cell">
-                <span className="metric-title">Waiting in Line</span>
-                <span className="metric-number">{queueSummary?.waiting_count ?? 0}</span>
+            {/* Three Attractive Metric Cards */}
+            <div className="metrics-grid">
+              <div className="metric-card metric-waiting">
+                <div className="metric-header">
+                  <span className="metric-title">Waiting in Line</span>
+                  <span className="metric-icon" aria-hidden="true">⏳</span>
+                </div>
+                <div className="metric-body">
+                  <span className="metric-number">{queueSummary?.waiting_count ?? 0}</span>
+                  <span className="metric-caption">Patients awaiting consultation</span>
+                </div>
               </div>
-              <div className="metric-cell">
-                <span className="metric-title">Capacity Utilized</span>
-                <span className="metric-number">
-                  {queueSummary?.consumed_capacity ?? 0} / {queueSummary?.max_capacity || 50}
-                </span>
+
+              <div className="metric-card metric-capacity">
+                <div className="metric-header">
+                  <span className="metric-title">Capacity Utilized</span>
+                  <span className="metric-icon" aria-hidden="true">📊</span>
+                </div>
+                <div className="metric-body">
+                  <div className="metric-number-group">
+                    <span className="metric-number">{queueSummary?.consumed_capacity ?? 0}</span>
+                    <span className="metric-divider">/</span>
+                    <span className="metric-total">{queueSummary?.max_capacity || 50}</span>
+                  </div>
+                  <div className="capacity-bar-track">
+                    <div
+                      className="capacity-bar-fill"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          Math.round(
+                            ((queueSummary?.consumed_capacity ?? 0) / (queueSummary?.max_capacity || 50)) * 100
+                          )
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="metric-caption">
+                    {Math.min(
+                      100,
+                      Math.round(
+                        ((queueSummary?.consumed_capacity ?? 0) / (queueSummary?.max_capacity || 50)) * 100
+                      )
+                    )}% booked
+                  </span>
+                </div>
               </div>
-              <div className="metric-cell">
-                <span className="metric-title">Total Tokens Issued</span>
-                <span className="metric-number">{queueSummary?.total_tokens_issued ?? 0}</span>
+
+              <div className="metric-card metric-tokens">
+                <div className="metric-header">
+                  <span className="metric-title">Total Tokens Issued</span>
+                  <span className="metric-icon" aria-hidden="true">🎫</span>
+                </div>
+                <div className="metric-body">
+                  <span className="metric-number">{queueSummary?.total_tokens_issued ?? 0}</span>
+                  <span className="metric-caption">Cumulative session tokens</span>
+                </div>
               </div>
-              <div className="metric-cell call-next-cell">
+            </div>
+
+            {/* Distinct, Prominent Operational Actions Bar */}
+            <div className="staff-actions-bar">
+              <div className="actions-guidance">
+                <span className="actions-heading">Operational Actions</span>
+                <p className="actions-subtext">
+                  {isRoomOccupied
+                    ? 'Room currently occupied. Complete current consultation before calling next patient.'
+                    : (queueSummary?.waiting_count === 0
+                      ? 'No patients waiting. Issue a walk-in ticket or wait for new arrivals.'
+                      : 'Next patient is in sequence and ready to be called.')}
+                </p>
+              </div>
+
+              <div className="actions-button-group">
                 <button
                   type="button"
                   className="call-next-btn"
@@ -559,15 +644,18 @@ function StaffDashboard() {
                       : (queueSummary?.waiting_count === 0 ? 'No waiting patients' : 'Call next patient in sequence')
                   }
                 >
-                  📢 Call Next Patient
+                  <span className="btn-icon">📢</span>
+                  <span>{isProcessingAction ? 'Calling...' : 'Call Next Patient'}</span>
                 </button>
+
                 <button
                   type="button"
                   className="walkin-trigger-btn"
                   onClick={() => setShowWalkInModal(true)}
                   disabled={isProcessingAction}
                 >
-                  + Issue Walk-In Ticket
+                  <span className="btn-icon">+</span>
+                  <span>Issue Walk-In Ticket</span>
                 </button>
               </div>
             </div>
@@ -578,19 +666,39 @@ function StaffDashboard() {
               {/* Now Calling Card */}
               <div className={`room-card calling-card ${queueSummary?.currently_calling ? 'active' : 'empty'}`}>
                 <div className="room-card-header">
-                  <h3>Now Calling (At Door)</h3>
-                  <span className="room-indicator">CALLING</span>
+                  <div className="room-title-group">
+                    <h3>Now Calling</h3>
+                    <span className="room-subtitle">Waiting at Consultation Door</span>
+                  </div>
+                  <span className="room-indicator calling-indicator">
+                    {queueSummary?.currently_calling ? '● AT DOOR' : 'IDLE'}
+                  </span>
                 </div>
 
                 {queueSummary?.currently_calling ? (
                   <div className="ticket-detail-box">
-                    <div className="ticket-token-large">
-                      {queueSummary.currently_calling.ticket_number}
+                    <div className="token-display-hero">
+                      <span className="token-hero-label">TOKEN NUMBER</span>
+                      <div className="ticket-token-large">
+                        {queueSummary.currently_calling.ticket_number}
+                      </div>
                     </div>
-                    <div className="ticket-meta">
-                      <p className="pat-name">{queueSummary.currently_calling.patient_name}</p>
-                      <p className="pat-phone">Phone: {queueSummary.currently_calling.patient_phone || 'None'}</p>
-                      <span className="source-tag">{queueSummary.currently_calling.source}</span>
+
+                    <div className="ticket-meta-grid">
+                      <div className="meta-field">
+                        <span className="meta-label">Patient Name</span>
+                        <p className="pat-name">{queueSummary.currently_calling.patient_name}</p>
+                      </div>
+                      <div className="meta-field">
+                        <span className="meta-label">Phone</span>
+                        <p className="pat-phone">{queueSummary.currently_calling.patient_phone || 'None provided'}</p>
+                      </div>
+                      <div className="meta-field">
+                        <span className="meta-label">Booking Source</span>
+                        <span className={`source-tag ${queueSummary.currently_calling.source?.toLowerCase()}`}>
+                          {queueSummary.currently_calling.source === 'WALK_IN' ? 'Walk-In Registration' : 'Online Appointment'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="ticket-action-btns">
@@ -624,26 +732,50 @@ function StaffDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <p className="room-idle-text">No patient currently called. Click "Call Next Patient" when ready.</p>
+                  <div className="room-empty-state">
+                    <div className="empty-bubble-icon">🔔</div>
+                    <p className="room-empty-title">No Patient Calling</p>
+                    <p className="room-idle-text">The calling desk is idle. Click "Call Next Patient" when the doctor is ready.</p>
+                  </div>
                 )}
               </div>
 
               {/* Currently In Consultation Card */}
               <div className={`room-card serving-card ${queueSummary?.currently_serving ? 'active' : 'empty'}`}>
                 <div className="room-card-header">
-                  <h3>In Consultation (With Doctor)</h3>
-                  <span className="room-indicator">IN CONSULTATION</span>
+                  <div className="room-title-group">
+                    <h3>In Consultation</h3>
+                    <span className="room-subtitle">Active with Doctor</span>
+                  </div>
+                  <span className="room-indicator serving-indicator">
+                    {queueSummary?.currently_serving ? '● IN CLINIC' : 'IDLE'}
+                  </span>
                 </div>
 
                 {queueSummary?.currently_serving ? (
                   <div className="ticket-detail-box">
-                    <div className="ticket-token-large serving-token">
-                      {queueSummary.currently_serving.ticket_number}
+                    <div className="token-display-hero serving-hero">
+                      <span className="token-hero-label">TOKEN NUMBER</span>
+                      <div className="ticket-token-large serving-token">
+                        {queueSummary.currently_serving.ticket_number}
+                      </div>
                     </div>
-                    <div className="ticket-meta">
-                      <p className="pat-name">{queueSummary.currently_serving.patient_name}</p>
-                      <p className="pat-phone">Phone: {queueSummary.currently_serving.patient_phone || 'None'}</p>
-                      <span className="source-tag">{queueSummary.currently_serving.source}</span>
+
+                    <div className="ticket-meta-grid">
+                      <div className="meta-field">
+                        <span className="meta-label">Patient Name</span>
+                        <p className="pat-name">{queueSummary.currently_serving.patient_name}</p>
+                      </div>
+                      <div className="meta-field">
+                        <span className="meta-label">Phone</span>
+                        <p className="pat-phone">{queueSummary.currently_serving.patient_phone || 'None provided'}</p>
+                      </div>
+                      <div className="meta-field">
+                        <span className="meta-label">Booking Source</span>
+                        <span className={`source-tag ${queueSummary.currently_serving.source?.toLowerCase()}`}>
+                          {queueSummary.currently_serving.source === 'WALK_IN' ? 'Walk-In Registration' : 'Online Appointment'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="ticket-action-btns">
@@ -663,7 +795,11 @@ function StaffDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <p className="room-idle-text">Doctor consultation room is empty.</p>
+                  <div className="room-empty-state">
+                    <div className="empty-bubble-icon">🩺</div>
+                    <p className="room-empty-title">Consultation Room Idle</p>
+                    <p className="room-idle-text">Doctor consultation room is empty. Start consultation with the called patient.</p>
+                  </div>
                 )}
               </div>
 
@@ -672,8 +808,13 @@ function StaffDashboard() {
             {/* Waiting Line Queue Table */}
             <div className="waiting-line-section">
               <div className="section-title-bar">
-                <h3>Waiting Queue Line ({queueSummary?.waiting_tickets?.length || 0})</h3>
-                <span className="subtext">FIFO monotonic sequence order</span>
+                <div className="section-title-group">
+                  <h3>Waiting Queue Line</h3>
+                  <span className="waiting-count-badge">
+                    {queueSummary?.waiting_tickets?.length || 0} Waiting
+                  </span>
+                </div>
+                <span className="subtext">FIFO monotonic sequence order · Real-time outpatient dispatch</span>
               </div>
 
               {queueSummary?.waiting_tickets?.length > 0 ? (
@@ -681,23 +822,39 @@ function StaffDashboard() {
                   <table className="waiting-table">
                     <thead>
                       <tr>
-                        <th>Position</th>
-                        <th>Token</th>
-                        <th>Patient Name</th>
-                        <th>Phone</th>
-                        <th>Source</th>
-                        <th>Registered At</th>
+                        <th className="col-pos">Position</th>
+                        <th className="col-token">Token</th>
+                        <th className="col-patient">Patient Name</th>
+                        <th className="col-phone">Phone</th>
+                        <th className="col-source">Source</th>
+                        <th className="col-time">Registered At</th>
                       </tr>
                     </thead>
                     <tbody>
                       {queueSummary.waiting_tickets.map((t, idx) => (
                         <tr key={t.id}>
-                          <td><strong>#{idx + 1}</strong></td>
-                          <td><span className="token-pill">{t.ticket_number}</span></td>
-                          <td>{t.patient_name}</td>
-                          <td>{t.patient_phone || '-'}</td>
-                          <td><span className="source-badge">{t.source}</span></td>
-                          <td>{new Date(t.created_at).toLocaleTimeString()}</td>
+                          <td className="col-pos">
+                            <span className="pos-badge">#{idx + 1}</span>
+                          </td>
+                          <td className="col-token">
+                            <span className="token-pill">{t.ticket_number}</span>
+                          </td>
+                          <td className="col-patient">
+                            <span className="patient-name-cell">{t.patient_name}</span>
+                          </td>
+                          <td className="col-phone">
+                            <span className="patient-phone-cell">{t.patient_phone || '—'}</span>
+                          </td>
+                          <td className="col-source">
+                            <span className={`source-badge ${t.source?.toLowerCase()}`}>
+                              {t.source === 'WALK_IN' ? 'Walk-In' : 'Online'}
+                            </span>
+                          </td>
+                          <td className="col-time">
+                            <span className="time-cell">
+                              {t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -705,7 +862,9 @@ function StaffDashboard() {
                 </div>
               ) : (
                 <div className="waiting-empty">
-                  <p>Queue is empty. No patients currently waiting.</p>
+                  <div className="empty-bubble-icon">📋</div>
+                  <h4>Queue is Empty</h4>
+                  <p>No patients are currently waiting in this session. Issue a walk-in ticket or wait for upcoming bookings.</p>
                 </div>
               )}
             </div>
