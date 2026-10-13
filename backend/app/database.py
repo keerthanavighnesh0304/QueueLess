@@ -1,4 +1,5 @@
 from typing import Generator
+import urllib.parse
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from app.config import settings
@@ -7,6 +8,7 @@ from app.config import settings
 # pool_pre_ping=True checks connection health before handing it out, preventing stale socket errors
 engine = create_engine(
     settings.get_database_url(),
+    connect_args=settings.get_database_connect_args(),
     pool_pre_ping=True,
     pool_recycle=3600,
     echo=False,
@@ -49,4 +51,8 @@ def check_database_connection() -> tuple[bool, str]:
         err_msg = str(exc)
         if settings.DB_PASSWORD and settings.DB_PASSWORD in err_msg:
             err_msg = err_msg.replace(settings.DB_PASSWORD, "********")
+        if settings.DATABASE_URL:
+            parsed = urllib.parse.urlsplit(settings.DATABASE_URL)
+            if parsed.password and parsed.password in err_msg:
+                err_msg = err_msg.replace(parsed.password, "********")
         return False, err_msg
